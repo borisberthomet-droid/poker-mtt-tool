@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur KO — Final Table PKO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px;color:#fff}
+.container{max-width:700px;margin:0 auto}
+h1{font-size:18px;font-weight:500;margin-bottom:6px;color:#fff}
+.subtitle{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:20px}
+.formula-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-left:3px solid #1D9E75;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6}
+.formula-box strong{color:#1D9E75}
+.grid-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.input-group{display:flex;flex-direction:column;gap:6px}
+label{font-size:12px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.04em}
+input[type=number]{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none;width:100%;-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]:focus{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.09)}
+.table-wrapper{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.table-header{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 2fr;padding:10px 14px;background:rgba(255,255,255,0.06);font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.04em;gap:8px}
+.table-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 2fr;padding:10px 14px;border-top:1px solid rgba(255,255,255,0.05);gap:8px;align-items:center}
+.table-row:hover{background:rgba(255,255,255,0.03)}
+.row-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;outline:none;width:100%;-moz-appearance:textfield}
+.row-input::-webkit-outer-spin-button,.row-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.row-input:focus{border-color:rgba(255,255,255,0.25)}
+.ko-value{font-size:14px;font-weight:500;color:#FAC775}
+.ko-value.zero{color:rgba(255,255,255,0.25)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.result-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px}
+.result-label{font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.result-value{font-size:22px;font-weight:500;color:#FAC775}
+.result-value.blue{color:#378ADD}
+.result-value.green{color:#1D9E75}
+.add-btn{background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.15);border-radius:8px;padding:8px;color:rgba(255,255,255,0.3);font-size:13px;cursor:pointer;width:100%;margin-bottom:20px}
+.add-btn:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)}
+.totals-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 2fr;padding:10px 14px;background:rgba(255,255,255,0.06);gap:8px;font-size:13px;font-weight:500}
+.totals-row span:first-child{color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:.04em;align-self:center}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Calculateur KO — Final Table PKO</h1>
+  <p class="subtitle">Calcule la valeur réelle d'un KO selon le stack de chaque joueur</p>
+
+  <div class="formula-box">
+    <strong>Formule :</strong> Valeur KO = (Bounty joueur × total chips) / prizepool restant (KO + régulier)<br>
+    Le bounty = la partie que tu gagnes, sans la partie qui va sur ta tête
+  </div>
+
+  <div class="grid-top">
+    <div class="input-group">
+      <label>Bounty € (/2 Wina)</label>
+      <input type="number" id="bountyVal" value="9750" placeholder="ex: 9750" oninput="calculate()">
+    </div>
+    <div class="input-group">
+      <label>Prizepool KO total (€)</label>
+      <input type="number" id="ppKO" value="61300" placeholder="ex: 61300" oninput="calculate()">
+    </div>
+    <div class="input-group">
+      <label>Prizepool Normal total (€)</label>
+      <input type="number" id="ppNormal" value="499000" placeholder="ex: 499000" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span>Stack</span>
+      <span>KO (€)</span>
+      <span>PP Hors KO (€)</span>
+      <span>Valeur KO calculée</span>
+    </div>
+    <div id="rows"></div>
+    <div class="totals-row" id="totals">
+      <span>Total</span>
+      <span id="totalKO" style="color:#FAC775">—</span>
+      <span id="totalPP" style="color:#378ADD">—</span>
+      <span style="color:rgba(255,255,255,0.2);font-size:11px">Chips in play</span>
+    </div>
+  </div>
+
+  <button class="add-btn" onclick="addRow()">+ Ajouter un joueur</button>
+
+  <div class="result-grid">
+    <div class="result-card">
+      <div class="result-label">Chips in play</div>
+      <div class="result-value blue" id="resChips">—</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Valeur / blind en €</div>
+      <div class="result-value green" id="resPerBlind">—</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Valeur bounty en blinds</div>
+      <div class="result-value" id="resBlinds">—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const initialData = [
+  {stack:1519000000, ko:19000, pp:124000},
+  {stack:0, ko:1400, pp:124000},
+  {stack:0, ko:2900, pp:88000},
+  {stack:0, ko:7600, pp:63000},
+  {stack:0, ko:7100, pp:45000},
+  {stack:0, ko:2300, pp:32000},
+  {stack:0, ko:21000, pp:23000},
+  {stack:0, ko:0, pp:0},
+];
+
+function addRow(data={stack:0,ko:0,pp:0}) {
+  const rows = document.getElementById('rows');
+  const div = document.createElement('div');
+  div.className = 'table-row';
+  div.innerHTML = `
+    <input type="number" class="row-input" placeholder="Stack" value="${data.stack||''}" oninput="calculate()">
+    <input type="number" class="row-input" placeholder="KO €" value="${data.ko||''}" oninput="calculate()">
+    <input type="number" class="row-input" placeholder="PP €" value="${data.pp||''}" oninput="calculate()">
+    <span class="ko-value zero" data-ko>—</span>
+  `;
+  rows.appendChild(div);
+  calculate();
+}
+
+function getRows() {
+  return Array.from(document.querySelectorAll('#rows .table-row'));
+}
+
+function calculate() {
+  const bountyVal = parseFloat(document.getElementById('bountyVal').value)||0;
+  const ppKO = parseFloat(document.getElementById('ppKO').value)||0;
+  const ppNormal = parseFloat(document.getElementById('ppNormal').value)||0;
+  const totalPP = ppKO + ppNormal;
+
+  const rows = getRows();
+  let totalChips = 0;
+  let totalKOsum = 0;
+  let totalPPsum = 0;
+
+  rows.forEach(row => {
+    const stack = parseFloat(row.children[0].value)||0;
+    const ko = parseFloat(row.children[1].value)||0;
+    const pp = parseFloat(row.children[2].value)||0;
+    totalChips += stack;
+    totalKOsum += ko;
+    totalPPsum += pp;
+  });
+
+  document.getElementById('totalKO').textContent = totalKOsum.toLocaleString('fr-FR') + ' €';
+  document.getElementById('totalPP').textContent = totalPPsum.toLocaleString('fr-FR') + ' €';
+  document.getElementById('resChips').textContent = totalChips.toLocaleString('fr-FR');
+
+  const perBlind = totalChips > 0 ? totalPP / totalChips : 0;
+  document.getElementById('resPerBlind').textContent = perBlind > 0 ? perBlind.toFixed(4) + ' €' : '—';
+
+  const bountyInBlinds = perBlind > 0 ? (bountyVal / perBlind).toLocaleString('fr-FR', {maximumFractionDigits:0}) : '—';
+  document.getElementById('resBlinds').textContent = bountyInBlinds;
+
+  rows.forEach(row => {
+    const stack = parseFloat(row.children[0].value)||0;
+    const koSpan = row.querySelector('[data-ko]');
+    if (stack > 0 && totalChips > 0 && totalPP > 0) {
+      const val = (bountyVal * totalChips) / totalPP;
+      koSpan.textContent = val.toLocaleString('fr-FR', {maximumFractionDigits:0}) + ' €';
+      koSpan.classList.remove('zero');
+    } else {
+      koSpan.textContent = '—';
+      koSpan.classList.add('zero');
+    }
+  });
+}
+
+initialData.forEach(d => addRow(d));
+</script>
+</body>
+</html>

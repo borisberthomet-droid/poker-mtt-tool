@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur Deal Making ICM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px;color:#fff}
+.container{max-width:700px;margin:0 auto}
+h1{font-size:18px;font-weight:500;margin-bottom:6px;color:#fff}
+.subtitle{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:20px}
+.info-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-left:3px solid #534AB7;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6}
+.info-box strong{color:#AFA9EC}
+.grid-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.input-group{display:flex;flex-direction:column;gap:6px}
+label{font-size:12px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.04em}
+input[type=number]{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none;width:100%;-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]:focus{border-color:rgba(255,255,255,0.3)}
+.section-title{font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.prizes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px}
+.prize-input-wrap{display:flex;flex-direction:column;gap:4px}
+.prize-label{font-size:11px;color:rgba(255,255,255,0.3)}
+.table-wrapper{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.table-header{display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1.5fr 1fr;padding:10px 14px;background:rgba(255,255,255,0.06);font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.04em;gap:8px}
+.table-row{display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1.5fr 1fr;padding:10px 14px;border-top:1px solid rgba(255,255,255,0.05);gap:8px;align-items:center}
+.table-row:hover{background:rgba(255,255,255,0.03)}
+.row-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;outline:none;width:100%;-moz-appearance:textfield}
+.row-input::-webkit-outer-spin-button,.row-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.row-input:focus{border-color:rgba(255,255,255,0.25)}
+.icm-value{font-size:14px;font-weight:500;color:#AFA9EC}
+.icm-value.zero{color:rgba(255,255,255,0.2)}
+.chip-pct{font-size:13px;color:rgba(255,255,255,0.4)}
+.add-btn{background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.15);border-radius:8px;padding:8px;color:rgba(255,255,255,0.3);font-size:13px;cursor:pointer;width:100%;margin-bottom:20px}
+.add-btn:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)}
+.calc-btn{background:#534AB7;border:none;border-radius:8px;padding:12px;color:#fff;font-size:14px;font-weight:500;cursor:pointer;width:100%;margin-bottom:20px}
+.calc-btn:hover{background:#3C3489}
+.result-section{background:rgba(83,74,183,0.1);border:1px solid rgba(83,74,183,0.3);border-radius:10px;padding:16px;margin-bottom:20px;display:none}
+.result-section.show{display:block}
+.result-title{font-size:13px;font-weight:500;color:#AFA9EC;margin-bottom:12px}
+.deal-grid{display:grid;gap:8px}
+.deal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:6px}
+.deal-name{font-size:13px;color:rgba(255,255,255,0.6)}
+.deal-amount{font-size:15px;font-weight:500;color:#FAC775}
+.deal-chips{font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px}
+.warning{font-size:12px;color:#EF9F27;margin-top:10px;padding:8px 12px;background:rgba(239,159,39,0.1);border-radius:6px;border-left:2px solid #EF9F27}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Calculateur Deal Making ICM</h1>
+  <p class="subtitle">Calcule le chop ICM équitable selon les stacks et la structure de prix</p>
+
+  <div class="info-box">
+    <strong>ICM (Independent Chip Model)</strong> — convertit les chips en valeur monétaire en tenant compte de la structure des prix. Un joueur avec 50% des chips ne gagne pas 50% du prizepool restant car il ne peut finir qu'à une seule place à la fois.
+  </div>
+
+  <div class="grid-top">
+    <div class="input-group">
+      <label>Prizepool total restant (€)</label>
+      <input type="number" id="totalPrize" value="10000" placeholder="ex: 10000" oninput="updatePrizes()">
+    </div>
+    <div class="input-group">
+      <label>Nombre de joueurs restants</label>
+      <input type="number" id="nbPlayers" value="4" min="2" max="10" placeholder="ex: 4" oninput="rebuildAll()">
+    </div>
+  </div>
+
+  <div class="section-title">Structure des prix (places payées)</div>
+  <div class="prizes-grid" id="prizesGrid"></div>
+
+  <div class="section-title">Stacks des joueurs</div>
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span>Joueur</span>
+      <span>Stack</span>
+      <span>% Chips</span>
+      <span>Deal ICM (€)</span>
+      <span></span>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <button class="add-btn" onclick="addPlayerRow()">+ Ajouter un joueur</button>
+  <button class="calc-btn" onclick="calculateICM()">Calculer le deal ICM</button>
+
+  <div class="result-section" id="results">
+    <div class="result-title">Deal ICM recommandé</div>
+    <div class="deal-grid" id="dealGrid"></div>
+    <div class="warning" id="warningMsg" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const defaultPrizes = [4000, 2500, 2000, 1500];
+const defaultStacks = [450000, 380000, 290000, 180000];
+const defaultNames = ['Joueur 1','Joueur 2','Joueur 3','Joueur 4'];
+
+function buildPrizesGrid() {
+  const nb = parseInt(document.getElementById('nbPlayers').value)||4;
+  const total = parseFloat(document.getElementById('totalPrize').value)||10000;
+  const grid = document.getElementById('prizesGrid');
+  grid.innerHTML = '';
+  for(let i=0;i<nb;i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'prize-input-wrap';
+    const pct = i===0?0.4:i===1?0.25:i===2?0.2:0.15;
+    const val = defaultPrizes[i] || Math.round(total * pct / 100) * 100;
+    wrap.innerHTML = `<div class="prize-label">${i+1}${i===0?'er':'ème'} place</div>
+      <input type="number" class="prize-input" value="${val}" oninput="calculateICM()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:7px 10px;color:#fff;font-size:13px;outline:none;width:100%;-moz-appearance:textfield">`;
+    grid.appendChild(wrap);
+  }
+}
+
+function buildPlayersTable() {
+  const nb = parseInt(document.getElementById('nbPlayers').value)||4;
+  const rows = document.getElementById('rows');
+  rows.innerHTML = '';
+  for(let i=0;i<nb;i++) addPlayerRow(i);
+}
+
+function addPlayerRow(idx) {
+  const rows = document.getElementById('rows');
+  const i = idx !== undefined ? idx : rows.children.length;
+  const div = document.createElement('div');
+  div.className = 'table-row';
+  const stack = defaultStacks[i] || 100000;
+  const name = defaultNames[i] || `Joueur ${i+1}`;
+  div.innerHTML = `
+    <input type="text" class="row-input" value="${name}" placeholder="Nom" style="font-size:13px">
+    <input type="number" class="row-input" value="${stack}" placeholder="Stack" oninput="updateChipPcts()">
+    <span class="chip-pct" data-pct>—</span>
+    <span class="icm-value zero" data-icm>—</span>
+    <span style="cursor:pointer;color:rgba(255,255,255,0.2);font-size:16px" onclick="this.parentElement.remove();updateChipPcts()">×</span>
+  `;
+  rows.appendChild(div);
+  updateChipPcts();
+}
+
+function updateChipPcts() {
+  const rows = Array.from(document.querySelectorAll('#rows .table-row'));
+  const total = rows.reduce((s,r)=>s+(parseFloat(r.children[1].value)||0),0);
+  rows.forEach(r => {
+    const stack = parseFloat(r.children[1].value)||0;
+    r.querySelector('[data-pct]').textContent = total>0 ? (stack/total*100).toFixed(1)+'%' : '—';
+  });
+}
+
+function updatePrizes() {
+  document.querySelectorAll('.prize-input').forEach((inp,i) => {});
+  calculateICM();
+}
+
+function rebuildAll() {
+  buildPrizesGrid();
+  buildPlayersTable();
+  calculateICM();
+}
+
+function icmEquity(stacks, prizes) {
+  const n = stacks.length;
+  const p = prizes.length;
+  if(n===0||p===0) return [];
+  const equities = new Array(n).fill(0);
+  const totalChips = stacks.reduce((a,b)=>a+b,0);
+
+  function recurse(remaining, prizeIdx, multiplier) {
+    if(prizeIdx>=p||remaining.length===0) return;
+    const prize = prizes[prizeIdx];
+    const totalRem = remaining.reduce((a,b)=>a+b.chips,0);
+    remaining.forEach(player => {
+      const prob = player.chips / totalRem;
+      equities[player.idx] += multiplier * prob * prize;
+      const newRemaining = remaining.filter(p=>p.idx!==player.idx);
+      recurse(newRemaining, prizeIdx+1, multiplier*prob);
+    });
+  }
+
+  const players = stacks.map((chips,idx)=>({chips,idx}));
+  recurse(players, 0, 1);
+  return equities;
+}
+
+function calculateICM() {
+  const rows = Array.from(document.querySelectorAll('#rows .table-row'));
+  const prizes = Array.from(document.querySelectorAll('.prize-input')).map(i=>parseFloat(i.value)||0);
+  const stacks = rows.map(r=>parseFloat(r.children[1].value)||0);
+  const names = rows.map(r=>r.children[0].value||'Joueur');
+
+  if(stacks.every(s=>s===0)||prizes.every(p=>p===0)) return;
+
+  const totalChips = stacks.reduce((a,b)=>a+b,0);
+  const totalPrize = prizes.reduce((a,b)=>a+b,0);
+
+  const equities = icmEquity(stacks, prizes);
+
+  rows.forEach((row,i) => {
+    const icmSpan = row.querySelector('[data-icm]');
+    if(equities[i]>0) {
+      icmSpan.textContent = Math.round(equities[i]).toLocaleString('fr-FR') + ' €';
+      icmSpan.classList.remove('zero');
+    } else {
+      icmSpan.textContent = '—';
+      icmSpan.classList.add('zero');
+    }
+  });
+
+  const resultsDiv = document.getElementById('results');
+  const dealGrid = document.getElementById('dealGrid');
+  resultsDiv.classList.add('show');
+  dealGrid.innerHTML = '';
+
+  const sorted = equities.map((eq,i)=>({eq,name:names[i],stack:stacks[i],pct:totalChips>0?stacks[i]/totalChips*100:0}))
+    .sort((a,b)=>b.eq-a.eq);
+
+  sorted.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'deal-row';
+    div.innerHTML = `
+      <div>
+        <div class="deal-name">${p.name}</div>
+        <div class="deal-chips">${p.stack.toLocaleString('fr-FR')} chips (${p.pct.toFixed(1)}%)</div>
+      </div>
+      <div class="deal-amount">${Math.round(p.eq).toLocaleString('fr-FR')} €</div>
+    `;
+    dealGrid.appendChild(div);
+  });
+
+  const calcTotal = equities.reduce((a,b)=>a+b,0);
+  const diff = Math.abs(calcTotal - totalPrize);
+  const warning = document.getElementById('warningMsg');
+  if(diff > 1) {
+    warning.style.display = 'block';
+    warning.textContent = `Note : total calculé ${Math.round(calcTotal).toLocaleString('fr-FR')} € vs prizepool ${totalPrize.toLocaleString('fr-FR')} € (écart d'arrondi de ${Math.round(diff)} €)`;
+  } else {
+    warning.style.display = 'none';
+  }
+}
+
+buildPrizesGrid();
+buildPlayersTable();
+calculateICM();
+</script>
+</body>
+</html>

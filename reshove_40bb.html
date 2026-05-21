@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reshove 40bb</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:16px;color:#fff}
+.container{max-width:680px;margin:0 auto}
+h1{font-size:16px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:12px}
+.notes-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.notes-area{width:100%;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-left:2px solid #EF9F27;border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.6);font-size:12px;line-height:1.6;resize:none;font-family:inherit;outline:none;min-height:60px;margin-bottom:14px}
+.tabs-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.lbl{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;white-space:nowrap;min-width:60px}
+.tab{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);background:transparent;transition:all .15s}
+.tab.active{background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.3)}
+.sub .tab.active{background:#1D9E75;color:#E1F5EE;border-color:transparent}
+.ctx .tab.t1.active{background:#EF9F27;color:#1a1a1a;border-color:transparent}
+.ctx .tab.t2.active{background:#378ADD;color:#E6F1FB;border-color:transparent}
+.ctx .tab.t3.active{background:#1D9E75;color:#E1F5EE;border-color:transparent}
+.ctx .tab.t4.active{background:#D85A30;color:#FAECE7;border-color:transparent}
+.action-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.action-btn{border-radius:10px;padding:8px 6px;cursor:pointer;border:2px solid transparent;transition:all .15s;text-align:center;user-select:none}
+.action-btn.sel{border-color:rgba(255,255,255,0.8)!important}
+.action-btn .aname{font-size:12px;font-weight:600;margin-bottom:6px}
+.action-btn .freq-row{display:flex;gap:4px;justify-content:center}
+.freq-btn{font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;transition:all .15s}
+.freq-btn.active{background:rgba(255,255,255,0.9);color:#000}
+.hint{font-size:10px;color:rgba(255,255,255,0.2);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px}
+.cell{aspect-ratio:1;border-radius:3px;cursor:pointer;user-select:none;position:relative;overflow:hidden;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center}
+.cell .seg{position:absolute;top:0;height:100%;transition:all .1s}
+.cell .ctext{position:relative;z-index:3;font-size:9px;font-weight:500;pointer-events:none;text-shadow:0 0 4px rgba(0,0,0,0.9)}
+.cell:hover{opacity:.8}
+.stats{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.stat{background:rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;flex:1;min-width:60px}
+.stat-label{font-size:10px;margin-bottom:3px}
+.stat-val{font-size:14px;font-weight:500}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5)}
+.btn:hover{background:rgba(255,255,255,0.08);color:#fff}
+.btn.danger{border-color:rgba(220,80,80,0.4);color:rgba(220,80,80,0.6)}
+.saved{font-size:11px;color:#1D9E75;margin-top:8px;opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Reshove &mdash; 40bb</h1>
+  <p class="subtitle">Selectionne une action + frequence, puis clique sur les cases &middot; Clic droit = reset case</p>
+
+  <div class="notes-label">Notes theoriques</div>
+  <textarea class="notes-area" id="notesEl" placeholder="Principes generaux du reshove a 40bb..."></textarea>
+
+  <div class="tabs-row" id="pos-tabs">
+    <span class="lbl">Position</span>
+    <div class="tab active" data-key="pos" data-val="CO">CO</div>
+    <div class="tab" data-key="pos" data-val="BTN">BTN</div>
+    <div class="tab" data-key="pos" data-val="SB">SB</div>
+    <div class="tab" data-key="pos" data-val="BB">BB</div>
+  </div>
+
+  <div class="tabs-row" id="vs-tabs">
+    <span class="lbl">Vs opener</span>
+    <div class="tab active" data-key="vs" data-val="UTG">vs UTG</div>
+    <div class="tab" data-key="vs" data-val="LJ">vs LJ</div>
+    <div class="tab" data-key="vs" data-val="CO">vs CO</div>
+    <div class="tab" data-key="vs" data-val="BTN">vs BTN</div>
+    <div class="tab" data-key="vs" data-val="SB">vs SB</div>
+  </div>
+
+  <div class="tabs-row sub" id="fl-tabs">
+    <span class="lbl">%FL</span>
+    <div class="tab active" data-key="fl" data-val="100">100% FL</div>
+    <div class="tab" data-key="fl" data-val="50">50% FL</div>
+    <div class="tab" data-key="fl" data-val="25">25% FL</div>
+    <div class="tab" data-key="fl" data-val="Bulle">Bulle</div>
+    <div class="tab" data-key="fl" data-val="10">10% FL</div>
+    <div class="tab" data-key="fl" data-val="FT">FT</div>
+  </div>
+
+  <div class="tabs-row sub" id="ctx-tabs">
+    <span class="lbl">PKO</span>
+    <div class="tab active" data-key="ctx" data-val="Van">Vanilla</div>
+    <div class="tab" data-key="ctx" data-val="BP05">Couvert BP 0.5</div>
+    <div class="tab" data-key="ctx" data-val="BP1">Couvert BP 1</div>
+    <div class="tab" data-key="ctx" data-val="BP2">Couvert BP 2</div>
+    <div class="tab" data-key="ctx" data-val="BP4">Couvert BP 4</div>
+    <div class="tab" data-key="ctx" data-val="BP10">Couvert BP 10</div>
+  </div>
+
+  <div class="tabs-row ctx" id="profile-tabs">
+    <span class="lbl">Contexte</span>
+    <div class="tab t1 active" data-key="profile" data-val="Th">Theorie</div>
+    <div class="tab t2" data-key="profile" data-val="Ti">vs Reg Tight</div>
+    <div class="tab t3" data-key="profile" data-val="Av">vs Avg Reg</div>
+    <div class="tab t4" data-key="profile" data-val="Ag">vs Reg Aggro</div>
+  </div>
+
+  <!-- Action selector -->
+  <div class="action-panel" id="action-panel">
+    <div class="action-btn sel" data-action="reshove" style="background:#4a1a1a;border-color:rgba(255,255,255,0.8)">
+      <div class="aname" style="color:#F7C1C1">Reshove</div>
+      <div class="freq-row">
+        <div class="freq-btn active" data-freq="100">100%</div>
+        <div class="freq-btn" data-freq="50">50%</div>
+      </div>
+    </div>
+    <div class="action-btn" data-action="size" style="background:#3a1a0a">
+      <div class="aname" style="color:#FAECE7">3bet size</div>
+      <div class="freq-row">
+        <div class="freq-btn active" data-freq="100">100%</div>
+        <div class="freq-btn" data-freq="50">50%</div>
+      </div>
+    </div>
+    <div class="action-btn" data-action="call" style="background:#0a2a1a">
+      <div class="aname" style="color:#9FE1CB">Call</div>
+      <div class="freq-row">
+        <div class="freq-btn active" data-freq="100">100%</div>
+        <div class="freq-btn" data-freq="50">50%</div>
+      </div>
+    </div>
+    <div class="action-btn" data-action="fold" style="background:#1a1a2a">
+      <div class="aname" style="color:rgba(255,255,255,0.5)">Fold</div>
+      <div class="freq-row">
+        <div class="freq-btn active" data-freq="100">100%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">Clic gauche = appliquer action selectionnee &middot; Clic droit = reset case a Fold</div>
+
+  <div class="grid" id="grid"></div>
+  <div class="stats" id="stats"></div>
+  <div class="actions">
+    <button class="btn danger" onclick="resetAll()">Reset tout</button>
+  </div>
+  <div class="saved" id="savedEl">Sauvegarde</div>
+</div>
+
+<script>
+var DEPTH = '40bb';
+var RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+var COLORS = {reshove:'#7B2D2D', size:'#C4674A', call:'#1D9E75', fold:'#1e1e2e'};
+var cur = {pos:'CO', vs:'UTG', fl:'100', ctx:'Van', profile:'Th'};
+var selAction = 'reshove';
+var selFreq = 100;
+
+function skey(){return 'r_'+DEPTH+'_'+cur.pos+'_'+cur.vs+'_'+cur.fl+'_'+cur.ctx+'_'+cur.profile;}
+function nkey(){return 'r_'+DEPTH+'_notes';}
+function loadMap(){
+  try{
+    var m = JSON.parse(localStorage.getItem(skey()))||{};
+    // Ensure all values are arrays
+    Object.keys(m).forEach(function(k){ if(!Array.isArray(m[k])) m[k]=[]; });
+    return m;
+  }catch(e){return {};}
+}
+function saveMap(m){localStorage.setItem(skey(),JSON.stringify(m));flash();}
+function flash(){var el=document.getElementById('savedEl');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},1200);}
+function combos(h){if(h.length===2)return 6;if(h[h.length-1]==='s')return 4;return 12;}
+
+function renderCell(cell, actions) {
+  // actions = [{action:'reshove',freq:50},{action:'call',freq:50}] sorted by order
+  var segs = cell.querySelectorAll('.seg');
+  segs.forEach(function(s){s.remove();});
+  var txt = cell.querySelector('.ctext');
+
+  if(!actions || !Array.isArray(actions) || actions.length===0 || (actions.length===1 && actions[0].action==='fold')) {
+    txt.style.color = 'rgba(255,255,255,0.2)';
+    return;
+  }
+
+  var left = 0;
+  actions.forEach(function(a){
+    if(a.action==='fold') return;
+    var seg = document.createElement('div');
+    seg.className = 'seg';
+    seg.style.left = left+'%';
+    seg.style.width = a.freq+'%';
+    seg.style.background = COLORS[a.action];
+    cell.insertBefore(seg, txt);
+    left += a.freq;
+  });
+  txt.style.color = '#fff';
+}
+
+function applyAction(hand, cell) {
+  var m = loadMap();
+  var actions = m[hand] ? JSON.parse(JSON.stringify(m[hand])) : [];
+
+  if(selAction === 'fold') {
+    // Reset to fold
+    m[hand] = [];
+    saveMap(m);
+    renderCell(cell, []);
+    updateStats();
+    return;
+  }
+
+  // Calculate current total %
+  var total = 0;
+  actions.forEach(function(a){ total += a.freq; });
+
+  // Check if action already exists
+  var existing = actions.find(function(a){ return a.action === selAction; });
+  if(existing) {
+    // Toggle freq
+    existing.freq = existing.freq === 100 ? 50 : 100;
+    // Recalculate
+    total = 0;
+    actions.forEach(function(a){ total += a.freq; });
+    if(total > 100) {
+      // Remove this action
+      actions = actions.filter(function(a){ return a.action !== selAction; });
+    }
+  } else {
+    // Add new action if room
+    if(total + selFreq <= 100) {
+      actions.push({action: selAction, freq: selFreq});
+    } else {
+      // Not enough room — replace fold with this action
+      actions = actions.filter(function(a){ return a.action !== 'fold'; });
+      var remaining = 100;
+      actions.forEach(function(a){ remaining -= a.freq; });
+      if(remaining > 0) actions.push({action: selAction, freq: remaining});
+    }
+  }
+
+  m[hand] = actions;
+  saveMap(m);
+  renderCell(cell, actions);
+  updateStats();
+}
+
+function buildGrid(){
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  var map = loadMap();
+  RANKS.forEach(function(r1,i){
+    RANKS.forEach(function(r2,j){
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      var hand, label;
+      if(i===j){hand=r1+r2; label=r1+r2;}
+      else if(i<j){hand=r1+r2+'s'; label=r1+r2;}
+      else{hand=r2+r1+'o'; label=r2+r1;}
+      cell.dataset.hand = hand;
+      cell.innerHTML = '<span class="ctext">'+label+'</span>';
+
+      var saved = map[hand];
+      if(saved && saved.length > 0) renderCell(cell, saved);
+
+      cell.addEventListener('click', function(e){
+        applyAction(hand, cell);
+      });
+
+      cell.addEventListener('contextmenu', function(e){
+        e.preventDefault();
+        var m = loadMap();
+        m[hand] = [];
+        saveMap(m);
+        renderCell(cell, []);
+        updateStats();
+      });
+
+      grid.appendChild(cell);
+    });
+  });
+  updateStats();
+}
+
+function updateStats(){
+  var counts = {reshove:0, size:0, call:0};
+  var map = loadMap();
+  document.querySelectorAll('.cell').forEach(function(cell){
+    var h = cell.dataset.hand;
+    var actions = map[h];
+    if(!actions) return;
+    var c = combos(h);
+    actions.forEach(function(a){
+      if(counts[a.action] !== undefined) counts[a.action] += c * (a.freq/100);
+    });
+  });
+  var total = counts.reshove + counts.size + counts.call;
+  var pct = (total/1326*100).toFixed(1);
+  document.getElementById('stats').innerHTML =
+    '<div class=stat><div class=stat-label style="color:#7B2D2D">Reshove</div><div class=stat-val style="color:#F7C1C1">'+counts.reshove.toFixed(1)+'</div></div>'+
+    '<div class=stat><div class=stat-label style="color:#C4674A">3bet size</div><div class=stat-val style="color:#FAECE7">'+counts.size.toFixed(1)+'</div></div>'+
+    '<div class=stat><div class=stat-label style="color:#1D9E75">Call</div><div class=stat-val style="color:#9FE1CB">'+counts.call.toFixed(1)+'</div></div>'+
+    '<div class=stat><div class=stat-label>% deck</div><div class=stat-val>'+pct+'%</div></div>';
+}
+
+// Action panel interactions
+document.querySelectorAll('.action-btn').forEach(function(btn){
+  btn.addEventListener('click', function(e){
+    if(e.target.classList.contains('freq-btn')) return;
+    document.querySelectorAll('.action-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    selAction = btn.dataset.action;
+    // Update selFreq to active freq of this btn
+    var activeFreq = btn.querySelector('.freq-btn.active');
+    selFreq = activeFreq ? parseInt(activeFreq.dataset.freq) : 100;
+  });
+});
+
+document.querySelectorAll('.freq-btn').forEach(function(fb){
+  fb.addEventListener('click', function(e){
+    e.stopPropagation();
+    var btn = fb.closest('.action-btn');
+    btn.querySelectorAll('.freq-btn').forEach(function(f){ f.classList.remove('active'); });
+    fb.classList.add('active');
+    // Select this action too
+    document.querySelectorAll('.action-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    selAction = btn.dataset.action;
+    selFreq = parseInt(fb.dataset.freq);
+  });
+});
+
+// Tabs
+document.querySelectorAll('.tab[data-key]').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    var key = tab.dataset.key;
+    document.querySelectorAll('#'+key+'-tabs .tab').forEach(function(t){ t.classList.remove('active'); });
+    tab.classList.add('active');
+    cur[key] = tab.dataset.val;
+    buildGrid();
+  });
+});
+
+document.getElementById('notesEl').addEventListener('input', function(){
+  localStorage.setItem(nkey(), this.value); flash();
+});
+var sn = localStorage.getItem(nkey());
+if(sn) document.getElementById('notesEl').value = sn;
+
+function resetAll(){
+  var m = {};
+  document.querySelectorAll('.cell').forEach(function(cell){
+    renderCell(cell, []);
+  });
+  saveMap(m); updateStats();
+}
+
+buildGrid();
+</script>
+</body>
+</html>

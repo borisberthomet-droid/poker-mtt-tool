@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeu 5 deep — Push/Fold</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:16px;color:#fff}
+.container{max-width:600px;margin:0 auto}
+h1{font-size:16px;font-weight:500;color:#fff;margin-bottom:4px}
+.subtitle{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:16px}
+.tabs-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.tabs-row .label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;white-space:nowrap}
+.tab{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);background:transparent;transition:all .15s}
+.tab.active{background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.3)}
+.tabs-row.sub .tab{font-size:11px;padding:4px 10px}
+.tabs-row.sub .tab.active{background:#1D9E75;color:#E1F5EE;border-color:transparent}
+.tabs-row.vs-row{display:none}
+.tabs-row.vs-row.show{display:flex}
+.tabs-row.vs-row .tab.active{background:#534AB7;color:#EEEDFE;border-color:transparent}
+.legend{display:flex;gap:12px;margin-bottom:10px;align-items:center}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.4)}
+.leg-dot{width:12px;height:12px;border-radius:2px}
+.grid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px}
+.cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;border:1px solid transparent}
+.cell.push{background:#1D9E75;color:#E1F5EE}
+.cell.fold{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.2)}
+.cell:hover{opacity:.75;border-color:rgba(255,255,255,0.3)}
+.stats{display:flex;gap:12px;margin-top:12px}
+.stat{background:rgba(255,255,255,0.05);border-radius:8px;padding:8px 12px;flex:1}
+.stat-label{font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:3px}
+.stat-val{font-size:16px;font-weight:500;color:#1D9E75}
+.actions{display:flex;gap:8px;margin-top:12px}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);transition:all .15s}
+.btn:hover{background:rgba(255,255,255,0.08);color:#fff}
+.btn.danger{border-color:rgba(220,80,80,0.4);color:rgba(220,80,80,0.7)}
+.btn.danger:hover{background:rgba(220,80,80,0.1);color:#E24B4A}
+.save-indicator{font-size:11px;color:#1D9E75;margin-top:8px;opacity:0;transition:opacity .3s}
+.save-indicator.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Jeu 5 deep — Push / Reshove / Call Push</h1>
+  <p class="subtitle">Clique sur une main pour la marquer — sauvegarde automatique</p>
+
+  <div class="tabs-row">
+    <span class="label">Position</span>
+    <div class="tab active" onclick="setPos('UTG',this)">UTG</div>
+    <div class="tab" onclick="setPos('LJ',this)">LJ</div>
+    <div class="tab" onclick="setPos('CO',this)">CO</div>
+    <div class="tab" onclick="setPos('BTN',this)">BTN</div>
+    <div class="tab" onclick="setPos('SB',this)">SB</div>
+  </div>
+
+  <div class="tabs-row">
+    <span class="label">Action</span>
+    <div class="tab active" onclick="setAction('Push',this)">Push</div>
+    <div class="tab" onclick="setAction('Reshove',this)">Reshove</div>
+    <div class="tab" onclick="setAction('Call Push',this)">Call Push</div>
+  </div>
+
+  <div class="tabs-row vs-row" id="vs-tabs">
+    <span class="label">Vs</span>
+    <div class="tab active" onclick="setVs('UTG',this)">vs UTG</div>
+    <div class="tab" onclick="setVs('LJ',this)">vs LJ</div>
+    <div class="tab" onclick="setVs('CO',this)">vs CO</div>
+    <div class="tab" onclick="setVs('BTN',this)">vs BTN</div>
+    <div class="tab" onclick="setVs('SB',this)">vs SB</div>
+  </div>
+
+  <div class="tabs-row sub">
+    <span class="label">%FL</span>
+    <div class="tab active" onclick="setFL('100%',this)">100% FL</div>
+    <div class="tab" onclick="setFL('50%',this)">50% FL</div>
+    <div class="tab" onclick="setFL('25%',this)">25% FL</div>
+    <div class="tab" onclick="setFL('Bulle',this)">Bulle</div>
+    <div class="tab" onclick="setFL('10%',this)">10% FL</div>
+    <div class="tab" onclick="setFL('FT',this)">FT</div>
+  </div>
+
+  <div class="tabs-row sub">
+    <span class="label">PKO</span>
+    <div class="tab active" onclick="setCtx('Vanilla',this)">Vanilla</div>
+    <div class="tab" onclick="setCtx('BP0.5',this)">BP 0.5</div>
+    <div class="tab" onclick="setCtx('BP1',this)">BP 1</div>
+    <div class="tab" onclick="setCtx('BP2',this)">BP 2</div>
+    <div class="tab" onclick="setCtx('BP4',this)">BP 4</div>
+    <div class="tab" onclick="setCtx('BP10',this)">BP 10</div>
+  </div>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#1D9E75"></div>Jouer</div>
+    <div class="leg"><div class="leg-dot" style="background:rgba(255,255,255,0.05)"></div>Fold</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="actions">
+    <button class="btn" onclick="selectAll()">Tout sélectionner</button>
+    <button class="btn danger" onclick="clearAll()">Tout effacer</button>
+  </div>
+
+  <div class="save-indicator" id="saveInd">Sauvegardé ✓</div>
+</div>
+
+<script>
+const ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+let pos = 'UTG', action = 'Push', vs = 'LJ', fl = '100%', ctx = 'Vanilla';
+
+function key() {
+  const vsKey = (action === 'Reshove' || action === 'Call Push') ? `_vs${vs}` : '';
+  return `5deep_${pos}_${action}${vsKey}_${fl}_${ctx}`;
+}
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(key())) || []; }
+  catch { return []; }
+}
+
+function save(hands) {
+  localStorage.setItem(key(), JSON.stringify(hands));
+  const ind = document.getElementById('saveInd');
+  ind.classList.add('show');
+  setTimeout(() => ind.classList.remove('show'), 1500);
+}
+
+function getHands() {
+  const hands = [];
+  document.querySelectorAll('.cell.push').forEach(c => hands.push(c.dataset.hand));
+  return hands;
+}
+
+function buildGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const saved = load();
+
+  ranks.forEach((r1,i) => {
+    ranks.forEach((r2,j) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      let hand, label;
+      if(i===j)    { hand = r1+r2;     label = r1+r2; }
+      else if(i<j) { hand = r1+r2+'s'; label = r1+r2; }
+      else         { hand = r2+r1+'o'; label = r2+r1; }
+      cell.dataset.hand = hand;
+      cell.textContent = label;
+      cell.classList.add(saved.includes(hand) ? 'push' : 'fold');
+      cell.onclick = () => toggle(cell);
+      grid.appendChild(cell);
+    });
+  });
+  updateStats();
+}
+
+function toggle(cell) {
+  cell.classList.toggle('push');
+  cell.classList.toggle('fold');
+  save(getHands());
+  updateStats();
+}
+
+function countCombos() {
+  let combos = 0;
+  document.querySelectorAll('.cell.push').forEach(c => {
+    const h = c.dataset.hand;
+    if(h.length === 2) combos += 6;
+    else if(h.endsWith('s')) combos += 4;
+    else combos += 12;
+  });
+  return combos;
+}
+
+function updateStats() {
+  const combos = countCombos();
+  const pct = (combos/1326*100).toFixed(1);
+  const vsLabel = (action==='Reshove'||action==='Call Push') ? ` · vs ${vs}` : '';
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-label">Combos réels</div><div class="stat-val">${combos}</div></div>
+    <div class="stat"><div class="stat-label">% du deck</div><div class="stat-val">${pct}%</div></div>
+    <div class="stat"><div class="stat-label">${pos} · ${action}${vsLabel}</div><div class="stat-val" style="font-size:11px;color:rgba(255,255,255,0.35)">${fl} · ${ctx}</div></div>
+  `;
+}
+
+function updateVsVisibility() {
+  const vsRow = document.getElementById('vs-tabs');
+  if(action === 'Reshove' || action === 'Call Push') {
+    vsRow.classList.add('show');
+  } else {
+    vsRow.classList.remove('show');
+  }
+}
+
+function setPos(p, el) {
+  pos = p;
+  document.querySelectorAll('.tabs-row:first-of-type .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  buildGrid();
+}
+
+function setAction(a, el) {
+  action = a;
+  document.querySelectorAll('.tabs-row:nth-of-type(2) .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  updateVsVisibility();
+  buildGrid();
+}
+
+function setVs(v, el) {
+  vs = v;
+  document.querySelectorAll('#vs-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  buildGrid();
+}
+
+function setFL(f, el) {
+  fl = f;
+  document.querySelectorAll('.tabs-row.sub:nth-of-type(4) .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  buildGrid();
+}
+
+function setCtx(c, el) {
+  ctx = c;
+  document.querySelectorAll('.tabs-row.sub:nth-of-type(5) .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  buildGrid();
+}
+
+function selectAll() {
+  document.querySelectorAll('.cell').forEach(c => { c.classList.add('push'); c.classList.remove('fold'); });
+  save(getHands());
+  updateStats();
+}
+
+function clearAll() {
+  document.querySelectorAll('.cell').forEach(c => { c.classList.add('fold'); c.classList.remove('push'); });
+  save([]);
+  updateStats();
+}
+
+buildGrid();
+</script>
+</body>
+</html>
