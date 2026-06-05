@@ -32,7 +32,7 @@
   .toggle-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 12px; font-family: 'DM Mono', monospace; padding: 2px 6px; border-radius: 4px; }
   .drop-zone { border: 1.5px dashed var(--border2); border-radius: 14px; padding: 3rem 2rem; text-align: center; cursor: pointer; background: var(--bg2); position: relative; margin-bottom: 1.5rem; transition: border-color 0.2s, background 0.2s; }
   .drop-zone:hover, .drop-zone.drag-over { border-color: var(--green); background: #111a14; }
-  .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .drop-zone { cursor: pointer; }
   .drop-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--bg3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 22px; }
   .drop-label { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
   .drop-sub { font-size: 13px; color: var(--text3); }
@@ -96,11 +96,11 @@
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
     <button class="toggle-btn" id="toggleKey" onclick="toggleKey()">show</button>
   </div>
-  <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept="image/*">
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
     <div class="drop-icon">📷</div>
-    <p class="drop-label">Glisse ta screenshot ici</p>
-    <p class="drop-sub">ou clique pour sélectionner · JPG, PNG, WEBP</p>
+    <p class="drop-label">Clique ici pour sélectionner</p>
+    <p class="drop-sub">JPG, PNG, WEBP · ou glisse ta screenshot</p>
   </div>
   <img id="previewImg" alt="Screenshot de la table">
   <button class="btn-analyze" id="btnAnalyze" onclick="analyze()">
@@ -346,14 +346,6 @@ function updateCardStats(idx, data, name) {
   else if (earnings > 200000) { danger = 'mid'; dangerText = '🟡'; dangerClass = 'danger-orange'; }
 
   if (dangerEl) { dangerEl.textContent = dangerText; dangerEl.className = 'danger-tag ' + dangerClass; }
-
-  // Render stats
-  const stats = [
-    { label: 'Gains totaux', val: data.earnings || '—', cls: 'earnings' },
-    { label: 'Cashes', val: data.cashes || '—', cls: '' },
-    { label: 'Meilleur cash', val: data.bestCash || '—', cls: '' },
-    { label: 'Classement', val: data.ranking || '—', cls: '' },
-  ];
 
   // Calculate avg buyin
   let avgBuyin = data.avgBuyin || null;
