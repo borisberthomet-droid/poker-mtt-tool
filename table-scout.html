@@ -596,22 +596,25 @@ Réponds UNIQUEMENT en JSON valide, sans backticks ni texte autour, format exact
 Important: inclus TOUS les joueurs visibles. Si un nom est tronqué, mets-le tel quel.`;
 
   try {
-    const response = await fetch("https://poker-scout-proxy.borisberthomet.workers.dev/anthropic", {
+    const response = await fetch("https://poker-scout-proxy.borisberthomet.workers.dev/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: imageMediaType, data: imageBase64 } },
-            { type: "text", text: prompt }
-          ]
-        }]
+        route: "anthropic",
+        payload: {
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: imageMediaType, data: imageBase64 } },
+              { type: "text", text: prompt }
+            ]
+          }]
+        }
       })
     });
 
