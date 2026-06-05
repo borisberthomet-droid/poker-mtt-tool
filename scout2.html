@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table Scout</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f0e; --bg2:#141716; --bg3:#1c201e;
+  --border:#2a2f2c; --border2:#3a403c;
+  --text:#e8ede9; --text2:#8a9690; --text3:#566058;
+  --green:#4ade80; --gdim:#1a3326; --gmid:#22c55e;
+  --amber:#fbbf24; --adim:#2d2208;
+  --red:#f87171; --rdim:#2d1010;
+  --orange:#fb923c; --odim:#2d1a08;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--text);text-decoration:none}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.badge{font-family:'DM Mono',monospace;font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);color:var(--text3)}
+main{flex:1;padding:2rem;max-width:960px;margin:0 auto;width:100%}
+h1{font-size:26px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px}
+.sub{font-size:14px;color:var(--text2);margin-bottom:1.5rem}
+.api-row{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+.api-row label{font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap}
+.api-row input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-width:0}
+.api-row input::placeholder{color:var(--text3)}
+.show-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:4px}
+.upload-area{background:var(--bg2);border:1.5px dashed var(--border2);border-radius:14px;padding:2.5rem 2rem;text-align:center;margin-bottom:1.5rem}
+.upload-btn{display:inline-block;margin-top:12px;padding:10px 24px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);transition:border-color 0.15s}
+.upload-btn:hover{border-color:var(--green);color:var(--green)}
+#fileInput{display:none}
+#previewImg{width:100%;border-radius:12px;margin-bottom:1.5rem;display:none;border:1px solid var(--border)}
+.btn-analyze{width:100%;padding:14px;border-radius:10px;border:none;background:var(--green);color:#0a1a0d;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;margin-bottom:2rem}
+.btn-analyze:disabled{opacity:0.4;cursor:not-allowed}
+.btn-reset{background:none;border:1px solid var(--border2);color:var(--text2);font-family:'Syne',sans-serif;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;margin-bottom:1.5rem;display:none}
+.errbox{background:var(--rdim);border:1px solid var(--red);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--red);margin-bottom:1rem;display:none}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.6s linear infinite;flex-shrink:0;display:inline-block}
+.mini-spin{width:10px;height:10px;border:1.5px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status{display:none;align-items:center;gap:10px;font-size:13px;color:var(--text2);margin-bottom:1.5rem}
+.section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1rem}
+.section-lbl{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)}
+.count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.card.hero{border-color:var(--gmid);background:#0e1f14}
+.card-top{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.av{width:42px;height:42px;border-radius:10px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--text2);flex-shrink:0}
+.av.h{background:var(--gdim);border-color:var(--gmid);color:var(--green)}
+.pinfo{flex:1;min-width:0}
+.pname-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.pname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-tag{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:100px;background:var(--gdim);color:var(--green);border:1px solid var(--gmid);flex-shrink:0}
+.dtag{font-family:'DM Mono',monospace;font-size:11px;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.dr{background:var(--rdim);color:var(--red);border:1px solid var(--red)}
+.do{background:var(--odim);color:var(--orange);border:1px solid var(--orange)}
+.dg{background:var(--gdim);color:var(--green);border:1px solid var(--gmid)}
+.pmeta{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.stack{color:var(--amber)}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 16px 12px}
+.stat{background:var(--bg3);border-radius:8px;padding:8px 10px}
+.stat.full{grid-column:1/-1}
+.slbl{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px}
+.sval{font-size:13px;font-weight:600;font-family:'DM Mono',monospace}
+.sval.earn{color:var(--amber)}
+.scout-status{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;padding:6px 16px 10px;display:flex;align-items:center;gap:6px}
+.name-row{padding:0 16px 10px}
+.name-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none}
+.links{border-top:1px solid var(--border);padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;border-radius:100px;border:1px solid var(--border2);color:var(--text2);text-decoration:none;cursor:pointer;white-space:nowrap;transition:all 0.15s}
+.pill:hover{border-color:var(--green);color:var(--green);background:var(--gdim)}
+.pill.hm{border-color:var(--amber);color:var(--amber)}
+.pill.hm:hover{background:var(--adim)}
+footer{border-top:1px solid var(--border);padding:1rem 2rem;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="dot"></div>Table Scout</div>
+  <span class="badge">MTT TOOL</span>
+</header>
+<main>
+  <h1>Scout ta table</h1>
+  <p class="sub">Upload une screenshot → joueurs détectés + stats automatiques</p>
+
+  <div class="api-row">
+    <label>API KEY</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
+    <button class="show-btn" id="showBtn">show</button>
+  </div>
+
+  <div class="upload-area" id="uploadArea">
+    <div style="font-size:32px">📷</div>
+    <p style="margin-top:8px;font-size:14px;color:var(--text2)">Screenshot de ta table</p>
+    <label class="upload-btn" for="fileInput">Sélectionner un fichier</label>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <img id="previewImg" alt="preview">
+  <button class="btn-analyze" id="btnAnalyze">🔍 Analyser les joueurs</button>
+  <button class="btn-reset" id="btnReset">↩ Nouvelle analyse</button>
+  <div class="status" id="status"><div class="spinner"></div><span id="statusTxt">Analyse en cours...</span></div>
+  <div class="errbox" id="errbox"></div>
+  <div id="results"></div>
+</main>
+<footer>Boris Berthomet · Poker MTT Tool · Table Scout</footer>
+
+<script>
+const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev/';
+const FLAGS = {US:"🇺🇸",FR:"🇫🇷",GB:"🇬🇧",DE:"🇩🇪",CA:"🇨🇦",AU:"🇦🇺",ES:"🇪🇸",IT:"🇮🇹",PT:"🇵🇹",BR:"🇧🇷",NL:"🇳🇱",BE:"🇧🇪",RU:"🇷🇺",UA:"🇺🇦",PL:"🇵🇱",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴",TH:"🇹🇭",JP:"🇯🇵"};
+
+let b64 = null, mime = 'image/jpeg', players = [];
+
+// Load saved key
+const sk = localStorage.getItem('scout_key');
+if (sk) document.getElementById('apiKey').value = sk;
+
+document.getElementById('apiKey').addEventListener('input', e => {
+  localStorage.setItem('scout_key', e.target.value);
+});
+
+document.getElementById('showBtn').addEventListener('click', () => {
+  const inp = document.getElementById('apiKey');
+  const btn = document.getElementById('showBtn');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'hide'; }
+  else { inp.type = 'password'; btn.textContent = 'show'; }
+});
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  mime = f.type || 'image/jpeg';
+  const r = new FileReader();
+  r.onload = ev => {
+    b64 = ev.target.result.split(',')[1];
+    const img = document.getElementById('previewImg');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('btnAnalyze').style.display = 'flex';
+    document.getElementById('btnReset').style.display = 'none';
+    document.getElementById('errbox').style.display = 'none';
+    document.getElementById('results').innerHTML = '';
+  };
+  r.readAsDataURL(f);
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  b64 = null;
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('uploadArea').style.display = 'block';
+  document.getElementById('btnAnalyze').style.display = 'none';
+  document.getElementById('btnReset').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('errbox').style.display = 'none';
+});
+
+document.getElementById('btnAnalyze').addEventListener('click', analyze);
+
+async function callWorker(body) {
+  const key = document.getElementById('apiKey').value.trim();
+  const r = await fetch(WORKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+async function analyze() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { showErr('Entre ta clé API Anthropic.'); return; }
+  if (!b64) { showErr('Sélectionne une image.'); return; }
+
+  const btn = document.getElementById('btnAnalyze');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>&nbsp;Détection...';
+  const st = document.getElementById('status');
+  st.style.display = 'flex';
+  document.getElementById('statusTxt').textContent = 'Détection des joueurs...';
+  document.getElementById('errbox').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+
+  const prompt = `Analyse cette screenshot de table de poker en ligne. Retourne UNIQUEMENT du JSON valide sans backticks:
+{"players":[{"name":"nom exact","stack":"ex: 235.0K","country":"code ISO 2 lettres ou null","is_hero":true si nom en ORANGE sinon false}]}`;
+
+  try {
+    const data = await callWorker({
+      route: 'anthropic',
+      payload: {
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      }
+    });
+
+    if (!data.content) throw new Error('Réponse invalide: ' + JSON.stringify(data).slice(0,150));
+    const txt = data.content.map(i => i.text||'').join('');
+    const clean = txt.replace(/```json|```/g,'').trim();
+    players = JSON.parse(clean).players || [];
+
+    st.style.display = 'none';
+    btn.style.display = 'none';
+    document.getElementById('btnReset').style.display = 'block';
+    render();
+    scoutAll();
+  } catch(e) {
+    st.style.display = 'none';
+    btn.disabled = false;
+    btn.innerHTML = '🔍 Analyser les joueurs';
+    showErr('Erreur: ' + e.message);
+  }
+}
+
+function ini(name) {
+  return (name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'??';
+}
+function fl(code) {
+  return code && FLAGS[code.toUpperCase()] ? FLAGS[code.toUpperCase()] : '';
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showErr(msg) {
+  const b = document.getElementById('errbox');
+  b.textContent = '⚠ ' + msg;
+  b.style.display = 'block';
+}
+
+function render() {
+  const hero = players.find(p => p.is_hero);
+  const opps = players.filter(p => !p.is_hero);
+  let html = '';
+  if (hero) {
+    html += `<div class="section-hdr"><span class="section-lbl">Hero</span></div>`;
+    html += `<div class="grid" style="margin-bottom:1.5rem">${card(hero,'hero')}</div>`;
+  }
+  if (opps.length) {
+    html += `<div class="section-hdr"><span class="section-lbl">Opponents</span><span class="count">${opps.length} joueur${opps.length>1?'s':''}</span></div>`;
+    html += `<div class="grid">`;
+    opps.forEach((p,i) => html += card(p,i));
+    html += `</div>`;
+  }
+  document.getElementById('results').innerHTML = html;
+}
+
+function card(p, idx) {
+  const isHero = p.is_hero;
+  const f = fl(p.country);
+  const editId = 'edit_'+idx;
+  const hmUrl = `https://www.thehendonmob.com/search?q=${encodeURIComponent(p.name)}&cat=players`;
+  const p5Url = `https://www.pocketfives.com/search/?search=${encodeURIComponent(p.name)}`;
+  const wsopUrl = `https://www.wsop.com/players/search/?search=${encodeURIComponent(p.name)}`;
+  const gUrl = `https://www.google.com/search?q=${encodeURIComponent(p.name+' poker')}`;
+
+  return `<div class="card ${isHero?'hero':''}" id="card_${idx}">
+    <div class="card-top">
+      <div class="av ${isHero?'h':''}">${ini(p.name)}</div>
+      <div class="pinfo">
+        <div class="pname-row">
+          <span class="pname">${esc(p.name)}</span>
+          ${isHero ? '<span class="hero-tag">HERO</span>' : `<span class="dtag" id="dtag_${idx}"></span>`}
+        </div>
+        <div class="pmeta">
+          <span class="stack">${esc(p.stack||'—')}</span>
+          ${f?`<span>${f}</span>`:''}
+        </div>
+      </div>
+    </div>
+    ${!isHero ? `
+    <div id="stats_${idx}"><div class="scout-status"><div class="mini-spin"></div>&nbsp;Recherche...</div></div>
+    <div class="name-row"><input class="name-input" id="${editId}" value="${esc(p.name)}" placeholder="Corriger le nom..."></div>
+    <div class="links">
+      <a class="pill hm" id="hm_${idx}" href="${hmUrl}" target="_blank">Hendon Mob</a>
+      <a class="pill" href="${p5Url}" target="_blank">PocketFives</a>
+      <a class="pill" href="${wsopUrl}" target="_blank">WSOP</a>
+      <a class="pill" href="${gUrl}" target="_blank">Google</a>
+    </div>` : ''}
+  </div>`;
+}
+
+async function scoutAll() {
+  const opps = players.filter(p => !p.is_hero);
+  for (let i = 0; i < opps.length; i++) {
+    scoutOne(opps[i], i);
+    await new Promise(r => setTimeout(r, 600));
+  }
+}
+
+async function scoutOne(p, idx) {
+  try {
+    const data = await callWorker({ route: 'scout', name: p.name });
+    applyStats(idx, data);
+  } catch(e) {
+    const el = document.getElementById('stats_'+idx);
+    if (el) el.innerHTML = '';
+  }
+}
+
+function applyStats(idx, d) {
+  const statsEl = document.getElementById('stats_'+idx);
+  const dtagEl = document.getElementById('dtag_'+idx);
+  const hmEl = document.getElementById('hm_'+idx);
+  if (!statsEl) return;
+
+  if (!d || !d.found) {
+    statsEl.innerHTML = '';
+    if (dtagEl) { dtagEl.textContent = '🟢'; dtagEl.className = 'dtag dg'; }
+    return;
+  }
+
+  if (hmEl && d.profileUrl) { hmEl.href = d.profileUrl; hmEl.textContent = 'Hendon Mob ↗'; }
+
+  const earn = d.earnings ? parseInt(d.earnings.replace(/[$,]/g,'')) : 0;
+  let dc = 'dg', dt = '🟢';
+  if (earn > 1000000) { dc = 'dr'; dt = '🔴'; }
+  else if (earn > 200000) { dc = 'do'; dt = '🟡'; }
+  if (dtagEl) { dtagEl.textContent = dt; dtagEl.className = 'dtag '+dc; }
+
+  let avg = d.avgBuyin || null;
+  if (!avg && d.recentBuyins && d.recentBuyins.length) {
+    avg = Math.round(d.recentBuyins.reduce((a,b)=>a+b,0)/d.recentBuyins.length);
+  }
+  if (!avg && earn && d.cashes) avg = Math.round(earn / d.cashes / 6);
+  const fmt = v => v ? '$'+Number(v).toLocaleString() : '—';
+
+  statsEl.innerHTML = `<div class="stats-grid">
+    <div class="stat full"><div class="slbl">Gains totaux</div><div class="sval earn">${esc(d.earnings||'—')}</div></div>
+    <div class="stat"><div class="slbl">Cashes ITM</div><div class="sval">${esc(String(d.cashes||'—'))}</div></div>
+    <div class="stat"><div class="slbl">Meilleur cash</div><div class="sval">${esc(d.bestCash||'—')}</div></div>
+    <div class="stat"><div class="slbl">Mise moyenne</div><div class="sval">${esc(fmt(avg))}</div></div>
+    <div class="stat"><div class="slbl">Gains 2026</div><div class="sval earn">${esc(d.earningsThisYear||'—')}</div></div>
+    <div class="stat"><div class="slbl">Classement</div><div class="sval">${esc(d.ranking||'—')}</div></div>
+    <div class="stat"><div class="slbl">Premier ITM</div><div class="sval">${esc(d.firstCash||'—')}</div></div>
+    <div class="stat"><div class="slbl">Dernier ITM</div><div class="sval">${esc(d.lastCash||'—')}</div></div>
+  </div>`;
+}
+</script>
+</body>
+</html>
