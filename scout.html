@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table Scout — Poker MTT Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0e; --bg2: #141716; --bg3: #1c201e;
+    --border: #2a2f2c; --border2: #3a403c;
+    --text: #e8ede9; --text2: #8a9690; --text3: #566058;
+    --green: #4ade80; --green-dim: #1a3326; --green-mid: #22c55e;
+    --amber: #fbbf24; --amber-dim: #2d2208;
+    --red: #f87171; --red-dim: #2d1010;
+    --orange: #fb923c; --orange-dim: #2d1a08;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  header { border-bottom: 1px solid var(--border); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .badge { font-family: 'DM Mono', monospace; font-size: 11px; padding: 3px 10px; border-radius: 100px; border: 1px solid var(--border2); color: var(--text3); }
+  main { flex: 1; padding: 2rem; max-width: 960px; margin: 0 auto; width: 100%; }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .page-sub { font-size: 14px; color: var(--text2); margin-bottom: 2rem; }
+  .api-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+  .api-row label { font-size: 12px; color: var(--text2); font-family: 'DM Mono', monospace; white-space: nowrap; }
+  .api-row input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; min-width: 0; }
+  .api-row input::placeholder { color: var(--text3); }
+  .toggle-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 12px; font-family: 'DM Mono', monospace; padding: 2px 6px; border-radius: 4px; }
+  .drop-zone { border: 1.5px dashed var(--border2); border-radius: 14px; padding: 3rem 2rem; text-align: center; cursor: pointer; background: var(--bg2); position: relative; margin-bottom: 1.5rem; transition: border-color 0.2s, background 0.2s; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--green); background: #111a14; }
+  .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .drop-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--bg3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 22px; }
+  .drop-label { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .drop-sub { font-size: 13px; color: var(--text3); }
+  #previewImg { width: 100%; border-radius: 12px; margin-bottom: 1.5rem; display: none; border: 1px solid var(--border); }
+  .btn-analyze { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--green); color: #0a1a0d; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; display: none; align-items: center; justify-content: center; gap: 8px; margin-bottom: 2rem; }
+  .btn-analyze:hover { opacity: 0.9; }
+  .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-reset { background: none; border: 1px solid var(--border2); color: var(--text2); font-family: 'Syne', sans-serif; font-size: 13px; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 1.5rem; display: none; }
+  .status-bar { display: none; align-items: center; gap: 10px; font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.6s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { background: var(--red-dim); border: 1px solid var(--red); border-radius: 10px; padding: 14px 16px; font-size: 13px; color: var(--red); margin-bottom: 1rem; display: none; }
+  .results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
+  .results-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+  .results-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); }
+  .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .player-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.2s; }
+  .player-card.is-hero { border-color: var(--green-mid); background: #0e1f14; }
+  .card-top { padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 42px; height: 42px; border-radius: 10px; background: var(--bg3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--text2); flex-shrink: 0; }
+  .avatar.hero-av { background: var(--green-dim); border-color: var(--green-mid); color: var(--green); }
+  .player-info { flex: 1; min-width: 0; }
+  .player-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+  .player-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hero-tag { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 100px; background: var(--green-dim); color: var(--green); border: 1px solid var(--green-mid); flex-shrink: 0; }
+  .danger-tag { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 100px; flex-shrink: 0; }
+  .danger-red { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+  .danger-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
+  .danger-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-mid); }
+  .player-meta { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+  .stack-val { color: var(--amber); }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 16px 12px; }
+  .stat-item { background: var(--bg3); border-radius: 8px; padding: 8px 10px; }
+  .stat-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .stat-val { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+  .stat-val.earnings { color: var(--amber); }
+  .stat-full { grid-column: 1 / -1; }
+  .name-edit-row { padding: 0 16px 10px; }
+  .name-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); outline: none; }
+  .card-links { border-top: 1px solid var(--border); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .link-pill { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 10px; border-radius: 100px; border: 1px solid var(--border2); color: var(--text2); text-decoration: none; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .link-pill:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .link-pill.hendon-direct { border-color: var(--amber); color: var(--amber); }
+  .link-pill.hendon-direct:hover { background: var(--amber-dim); }
+  .link-pill.google:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  .scout-status { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; padding: 6px 16px 10px; display: flex; align-items: center; gap: 6px; }
+  .mini-spinner { width: 10px; height: 10px; border: 1.5px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  footer { border-top: 1px solid var(--border); padding: 1rem 2rem; font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="#"><div class="logo-dot"></div>Table Scout</a>
+  <span class="badge">MTT TOOL</span>
+</header>
+<main>
+  <h1 class="page-title">Scout ta table</h1>
+  <p class="page-sub">Upload une screenshot → joueurs détectés + stats Hendon Mob automatiques</p>
+  <div class="api-row">
+    <label>API KEY</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
+    <button class="toggle-btn" id="toggleKey" onclick="toggleKey()">show</button>
+  </div>
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept="image/*">
+    <div class="drop-icon">📷</div>
+    <p class="drop-label">Glisse ta screenshot ici</p>
+    <p class="drop-sub">ou clique pour sélectionner · JPG, PNG, WEBP</p>
+  </div>
+  <img id="previewImg" alt="Screenshot de la table">
+  <button class="btn-analyze" id="btnAnalyze" onclick="analyze()">
+    <span id="btnText">🔍 Analyser les joueurs</span>
+  </button>
+  <button class="btn-reset" id="btnReset" onclick="reset()">↩ Nouvelle analyse</button>
+  <div class="status-bar" id="statusBar"><div class="spinner"></div><span id="statusText">Analyse en cours...</span></div>
+  <div class="error-box" id="errorBox"></div>
+  <div id="resultsArea"></div>
+</main>
+<footer>Boris Berthomet · Poker MTT Tool · Table Scout</footer>
+
+<script>
+const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev/';
+const FLAGS = {US:"🇺🇸",FR:"🇫🇷",GB:"🇬🇧",DE:"🇩🇪",CA:"🇨🇦",AU:"🇦🇺",ES:"🇪🇸",IT:"🇮🇹",PT:"🇵🇹",BR:"🇧🇷",NL:"🇳🇱",BE:"🇧🇪",RU:"🇷🇺",UA:"🇺🇦",PL:"🇵🇱",SE:"🇸🇪",NO:"🇳🇴",DK:"🇩🇰",FI:"🇫🇮",AT:"🇦🇹",CH:"🇨🇭",TH:"🇹🇭",JP:"🇯🇵",KR:"🇰🇷",CN:"🇨🇳"};
+
+let imageBase64 = null, imageMediaType = 'image/jpeg', detectedPlayers = [];
+
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const previewImg = document.getElementById('previewImg');
+const btnAnalyze = document.getElementById('btnAnalyze');
+const btnReset = document.getElementById('btnReset');
+const statusBar = document.getElementById('statusBar');
+const errorBox = document.getElementById('errorBox');
+const resultsArea = document.getElementById('resultsArea');
+
+const savedKey = localStorage.getItem('scout_api_key');
+if (savedKey) document.getElementById('apiKey').value = savedKey;
+document.getElementById('apiKey').addEventListener('change', e => localStorage.setItem('scout_api_key', e.target.value));
+
+function toggleKey() {
+  const inp = document.getElementById('apiKey');
+  const btn = document.getElementById('toggleKey');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? 'show' : 'hide';
+}
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+function loadFile(file) {
+  imageMediaType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    imageBase64 = ev.target.result.split(',')[1];
+    previewImg.src = ev.target.result;
+    previewImg.style.display = 'block';
+    btnAnalyze.style.display = 'flex';
+    dropZone.style.display = 'none';
+    errorBox.style.display = 'none';
+    resultsArea.innerHTML = '';
+    btnReset.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function reset() {
+  imageBase64 = null;
+  previewImg.style.display = 'none'; previewImg.src = '';
+  btnAnalyze.style.display = 'none'; btnReset.style.display = 'none';
+  dropZone.style.display = 'block'; fileInput.value = '';
+  errorBox.style.display = 'none'; resultsArea.innerHTML = '';
+  statusBar.style.display = 'none';
+}
+
+async function callWorker(body) {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const resp = await fetch(WORKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+    body: JSON.stringify(body)
+  });
+  return resp.json();
+}
+
+async function analyze() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showError('Entre ta clé API Anthropic.'); return; }
+  if (!imageBase64) { showError('Sélectionne une image.'); return; }
+
+  btnAnalyze.disabled = true;
+  document.getElementById('btnText').textContent = 'Détection en cours...';
+  statusBar.style.display = 'flex';
+  document.getElementById('statusText').textContent = 'Détection des joueurs...';
+  errorBox.style.display = 'none';
+  resultsArea.innerHTML = '';
+
+  const prompt = `Tu es un assistant poker expert. Analyse cette screenshot d'une table de poker en ligne.
+Extrais tous les joueurs visibles. Réponds UNIQUEMENT en JSON valide, sans backticks :
+{
+  "players": [
+    {
+      "name": "Nom complet exact",
+      "stack": "montant en chips ex: 235.0K",
+      "country": "code ISO 2 lettres ou null",
+      "is_hero": true UNIQUEMENT si le nom est en ORANGE (hero sur WSOP Live), sinon false
+    }
+  ]
+}`;
+
+  try {
+    const data = await callWorker({
+      route: 'anthropic',
+      payload: {
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: imageMediaType, data: imageBase64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      }
+    });
+
+    console.log('vision response:', JSON.stringify(data).slice(0, 300));
+    if (!data.content) throw new Error('Réponse invalide du Worker: ' + JSON.stringify(data).slice(0, 200));
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    detectedPlayers = parsed.players || [];
+
+    statusBar.style.display = 'none';
+    btnAnalyze.style.display = 'none';
+    btnReset.style.display = 'block';
+
+    renderResults();
+    scoutAllPlayers();
+
+  } catch(err) {
+    statusBar.style.display = 'none';
+    btnAnalyze.disabled = false;
+    document.getElementById('btnText').textContent = '🔍 Analyser les joueurs';
+    showError('Erreur : ' + err.message);
+  }
+}
+
+function renderResults() {
+  const hero = detectedPlayers.find(p => p.is_hero);
+  const opponents = detectedPlayers.filter(p => !p.is_hero);
+  let html = '';
+
+  if (hero) {
+    html += `<div class="results-header"><span class="results-title">Hero</span></div>`;
+    html += `<div class="players-grid" style="margin-bottom:1.5rem;">${renderCard(hero, 'hero')}</div>`;
+  }
+  if (opponents.length > 0) {
+    html += `<div class="results-header"><span class="results-title">Opponents</span><span class="results-count">${opponents.length} joueur${opponents.length > 1 ? 's' : ''}</span></div>`;
+    html += `<div class="players-grid">`;
+    opponents.forEach((p, i) => { html += renderCard(p, i); });
+    html += `</div>`;
+  }
+  resultsArea.innerHTML = html;
+}
+
+function renderCard(player, idx) {
+  const ini = (player.name || '?').split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2) || '??';
+  const f = player.country && FLAGS[player.country.toUpperCase()] ? FLAGS[player.country.toUpperCase()] : '';
+  const heroCard = player.is_hero;
+  const editId = `name_${idx}`;
+  const cardId = `card_${idx}`;
+
+  const hendonSearchUrl = `https://www.thehendonmob.com/search?q=${encodeURIComponent(player.name)}&cat=players`;
+  const p5Url = `https://www.pocketfives.com/search/?search=${encodeURIComponent(player.name)}`;
+  const wsopUrl = `https://www.wsop.com/players/search/?search=${encodeURIComponent(player.name)}`;
+  const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(player.name + ' poker')}`;
+
+  return `
+    <div class="player-card ${heroCard ? 'is-hero' : ''}" id="${cardId}">
+      <div class="card-top">
+        <div class="avatar ${heroCard ? 'hero-av' : ''}">${ini}</div>
+        <div class="player-info">
+          <div class="player-name-row">
+            <span class="player-name">${escHtml(player.name)}</span>
+            ${heroCard ? '<span class="hero-tag">HERO</span>' : `<span class="danger-tag" id="danger_${idx}"></span>`}
+          </div>
+          <div class="player-meta">
+            <span class="stack-val">${escHtml(player.stack || '—')}</span>
+            ${f ? `<span>${f}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      ${!heroCard ? `
+      <div id="stats_${idx}">
+        <div class="scout-status"><div class="mini-spinner"></div>Recherche en cours...</div>
+      </div>
+      <div class="name-edit-row">
+        <input class="name-input" id="${editId}" value="${escHtml(player.name)}" placeholder="Corriger le nom...">
+      </div>
+      <div class="card-links">
+        <a class="link-pill hendon-direct" id="hendon_${idx}" href="${hendonSearchUrl}" target="_blank" rel="noopener">Hendon Mob</a>
+        <a class="link-pill" href="${p5Url}" target="_blank" rel="noopener">PocketFives</a>
+        <a class="link-pill" href="${wsopUrl}" target="_blank" rel="noopener">WSOP</a>
+        <a class="link-pill google" href="${googleUrl}" target="_blank" rel="noopener">Google</a>
+      </div>` : ''}
+    </div>`;
+}
+
+async function scoutAllPlayers() {
+  const opponents = detectedPlayers.filter(p => !p.is_hero);
+  for (let i = 0; i < opponents.length; i++) {
+    scoutPlayer(opponents[i], i);
+    await new Promise(r => setTimeout(r, 500));
+  }
+}
+
+async function scoutPlayer(player, idx) {
+  try {
+    const data = await callWorker({ route: 'scout', name: player.name });
+    console.log('scout result for', player.name, data);
+    updateCardStats(idx, data, player.name);
+  } catch(e) {
+    console.error('scout error for', player.name, e);
+    const statsEl = document.getElementById(`stats_${idx}`);
+    if (statsEl) statsEl.innerHTML = `<div style="padding:8px 16px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">Erreur: ${e.message}</div>`;
+  }
+}
+
+function updateCardStats(idx, data, name) {
+  const statsEl = document.getElementById(`stats_${idx}`);
+  const dangerEl = document.getElementById(`danger_${idx}`);
+  const hendonEl = document.getElementById(`hendon_${idx}`);
+
+  if (!statsEl) return;
+
+  if (!data || !data.found) {
+    statsEl.innerHTML = '';
+    if (dangerEl) { dangerEl.textContent = '🟢'; dangerEl.className = 'danger-tag danger-green'; }
+    return;
+  }
+
+  // Update Hendon Mob link to direct profile if found
+  if (hendonEl && data.profileUrl) {
+    hendonEl.href = data.profileUrl;
+    hendonEl.textContent = 'Hendon Mob ↗';
+  }
+
+  // Calculate danger level
+  let danger = 'low', dangerText = '🟢', dangerClass = 'danger-green';
+  const earnings = data.earnings ? parseInt(data.earnings.replace(/[$,]/g, '')) : 0;
+  if (earnings > 1000000) { danger = 'high'; dangerText = '🔴'; dangerClass = 'danger-red'; }
+  else if (earnings > 200000) { danger = 'mid'; dangerText = '🟡'; dangerClass = 'danger-orange'; }
+
+  if (dangerEl) { dangerEl.textContent = dangerText; dangerEl.className = 'danger-tag ' + dangerClass; }
+
+  // Render stats
+  const stats = [
+    { label: 'Gains totaux', val: data.earnings || '—', cls: 'earnings' },
+    { label: 'Cashes', val: data.cashes || '—', cls: '' },
+    { label: 'Meilleur cash', val: data.bestCash || '—', cls: '' },
+    { label: 'Classement', val: data.ranking || '—', cls: '' },
+  ];
+
+  // Calculate avg buyin
+  let avgBuyin = data.avgBuyin || null;
+  if (!avgBuyin && data.recentBuyins && data.recentBuyins.length > 0) {
+    avgBuyin = Math.round(data.recentBuyins.reduce((a,b) => a+b, 0) / data.recentBuyins.length);
+  }
+  if (!avgBuyin && data.earnings && data.cashes) {
+    const earningsNum = parseInt((data.earnings||'').replace(/[$,]/g,''));
+    avgBuyin = Math.round(earningsNum / data.cashes / 6);
+  }
+
+  const fmt = v => v ? '$' + Number(v).toLocaleString() : '—';
+
+  const stats = [
+    { label: 'Gains totaux', val: data.earnings || '—', cls: 'earnings', full: true },
+    { label: 'Cashes ITM', val: data.cashes || '—', cls: '' },
+    { label: 'Meilleur cash', val: data.bestCash || '—', cls: '' },
+    { label: 'Mise moyenne', val: avgBuyin ? fmt(avgBuyin) : '—', cls: '' },
+    { label: 'Gains 2026', val: data.earningsThisYear || '—', cls: 'earnings' },
+    { label: 'Classement', val: data.ranking || '—', cls: '' },
+    { label: 'Premier ITM', val: data.firstCash || '—', cls: '' },
+    { label: 'Dernier ITM', val: data.lastCash || '—', cls: '' },
+  ];
+
+  statsEl.innerHTML = `<div class="stats-grid">${stats.map(s => `
+    <div class="stat-item ${s.full ? 'stat-full' : ''}">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-val ${s.cls}">${escHtml(String(s.val))}</div>
+    </div>`).join('')}</div>`;
+}
+
+function showError(msg) { errorBox.textContent = '⚠ ' + msg; errorBox.style.display = 'block'; }
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
