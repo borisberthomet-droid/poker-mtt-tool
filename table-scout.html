@@ -69,6 +69,7 @@
   .stat-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
   .stat-val { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
   .stat-val.earnings { color: var(--amber); }
+  .stat-full { grid-column: 1 / -1; }
   .name-edit-row { padding: 0 16px 10px; }
   .name-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); outline: none; }
   .card-links { border-top: 1px solid var(--border); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -111,13 +112,13 @@
   <div id="resultsArea"></div>
 </main>
 <footer>Boris Berthomet · Poker MTT Tool · Table Scout</footer>
- 
+
 <script>
 const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev/';
 const FLAGS = {US:"🇺🇸",FR:"🇫🇷",GB:"🇬🇧",DE:"🇩🇪",CA:"🇨🇦",AU:"🇦🇺",ES:"🇪🇸",IT:"🇮🇹",PT:"🇵🇹",BR:"🇧🇷",NL:"🇳🇱",BE:"🇧🇪",RU:"🇷🇺",UA:"🇺🇦",PL:"🇵🇱",SE:"🇸🇪",NO:"🇳🇴",DK:"🇩🇰",FI:"🇫🇮",AT:"🇦🇹",CH:"🇨🇭",TH:"🇹🇭",JP:"🇯🇵",KR:"🇰🇷",CN:"🇨🇳"};
- 
+
 let imageBase64 = null, imageMediaType = 'image/jpeg', detectedPlayers = [];
- 
+
 const fileInput = document.getElementById('fileInput');
 const dropZone = document.getElementById('dropZone');
 const previewImg = document.getElementById('previewImg');
@@ -126,23 +127,23 @@ const btnReset = document.getElementById('btnReset');
 const statusBar = document.getElementById('statusBar');
 const errorBox = document.getElementById('errorBox');
 const resultsArea = document.getElementById('resultsArea');
- 
+
 const savedKey = localStorage.getItem('scout_api_key');
 if (savedKey) document.getElementById('apiKey').value = savedKey;
 document.getElementById('apiKey').addEventListener('change', e => localStorage.setItem('scout_api_key', e.target.value));
- 
+
 function toggleKey() {
   const inp = document.getElementById('apiKey');
   const btn = document.getElementById('toggleKey');
   inp.type = inp.type === 'password' ? 'text' : 'password';
   btn.textContent = inp.type === 'password' ? 'show' : 'hide';
 }
- 
+
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
- 
+
 function loadFile(file) {
   imageMediaType = file.type || 'image/jpeg';
   const reader = new FileReader();
@@ -158,7 +159,7 @@ function loadFile(file) {
   };
   reader.readAsDataURL(file);
 }
- 
+
 function reset() {
   imageBase64 = null;
   previewImg.style.display = 'none'; previewImg.src = '';
@@ -167,7 +168,7 @@ function reset() {
   errorBox.style.display = 'none'; resultsArea.innerHTML = '';
   statusBar.style.display = 'none';
 }
- 
+
 async function callWorker(body) {
   const apiKey = document.getElementById('apiKey').value.trim();
   const resp = await fetch(WORKER, {
@@ -177,19 +178,19 @@ async function callWorker(body) {
   });
   return resp.json();
 }
- 
+
 async function analyze() {
   const apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) { showError('Entre ta clé API Anthropic.'); return; }
   if (!imageBase64) { showError('Sélectionne une image.'); return; }
- 
+
   btnAnalyze.disabled = true;
   document.getElementById('btnText').textContent = 'Détection en cours...';
   statusBar.style.display = 'flex';
   document.getElementById('statusText').textContent = 'Détection des joueurs...';
   errorBox.style.display = 'none';
   resultsArea.innerHTML = '';
- 
+
   const prompt = `Tu es un assistant poker expert. Analyse cette screenshot d'une table de poker en ligne.
 Extrais tous les joueurs visibles. Réponds UNIQUEMENT en JSON valide, sans backticks :
 {
@@ -202,7 +203,7 @@ Extrais tous les joueurs visibles. Réponds UNIQUEMENT en JSON valide, sans back
     }
   ]
 }`;
- 
+
   try {
     const data = await callWorker({
       route: 'anthropic',
@@ -215,19 +216,19 @@ Extrais tous les joueurs visibles. Réponds UNIQUEMENT en JSON valide, sans back
         ]}]
       }
     });
- 
+
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
     detectedPlayers = parsed.players || [];
- 
+
     statusBar.style.display = 'none';
     btnAnalyze.style.display = 'none';
     btnReset.style.display = 'block';
- 
+
     renderResults();
     scoutAllPlayers();
- 
+
   } catch(err) {
     statusBar.style.display = 'none';
     btnAnalyze.disabled = false;
@@ -235,12 +236,12 @@ Extrais tous les joueurs visibles. Réponds UNIQUEMENT en JSON valide, sans back
     showError('Erreur : ' + err.message);
   }
 }
- 
+
 function renderResults() {
   const hero = detectedPlayers.find(p => p.is_hero);
   const opponents = detectedPlayers.filter(p => !p.is_hero);
   let html = '';
- 
+
   if (hero) {
     html += `<div class="results-header"><span class="results-title">Hero</span></div>`;
     html += `<div class="players-grid" style="margin-bottom:1.5rem;">${renderCard(hero, 'hero')}</div>`;
@@ -253,19 +254,19 @@ function renderResults() {
   }
   resultsArea.innerHTML = html;
 }
- 
+
 function renderCard(player, idx) {
   const ini = (player.name || '?').split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2) || '??';
   const f = player.country && FLAGS[player.country.toUpperCase()] ? FLAGS[player.country.toUpperCase()] : '';
   const heroCard = player.is_hero;
   const editId = `name_${idx}`;
   const cardId = `card_${idx}`;
- 
+
   const hendonSearchUrl = `https://www.thehendonmob.com/search?q=${encodeURIComponent(player.name)}&cat=players`;
   const p5Url = `https://www.pocketfives.com/search/?search=${encodeURIComponent(player.name)}`;
   const wsopUrl = `https://www.wsop.com/players/search/?search=${encodeURIComponent(player.name)}`;
   const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(player.name + ' poker')}`;
- 
+
   return `
     <div class="player-card ${heroCard ? 'is-hero' : ''}" id="${cardId}">
       <div class="card-top">
@@ -296,7 +297,7 @@ function renderCard(player, idx) {
       </div>` : ''}
     </div>`;
 }
- 
+
 async function scoutAllPlayers() {
   const opponents = detectedPlayers.filter(p => !p.is_hero);
   for (let i = 0; i < opponents.length; i++) {
@@ -304,7 +305,7 @@ async function scoutAllPlayers() {
     await new Promise(r => setTimeout(r, 500));
   }
 }
- 
+
 async function scoutPlayer(player, idx) {
   try {
     const data = await callWorker({ route: 'scout', name: player.name });
@@ -314,34 +315,34 @@ async function scoutPlayer(player, idx) {
     if (statsEl) statsEl.innerHTML = '';
   }
 }
- 
+
 function updateCardStats(idx, data, name) {
   const statsEl = document.getElementById(`stats_${idx}`);
   const dangerEl = document.getElementById(`danger_${idx}`);
   const hendonEl = document.getElementById(`hendon_${idx}`);
- 
+
   if (!statsEl) return;
- 
+
   if (!data || !data.found) {
     statsEl.innerHTML = '';
     if (dangerEl) { dangerEl.textContent = '🟢'; dangerEl.className = 'danger-tag danger-green'; }
     return;
   }
- 
+
   // Update Hendon Mob link to direct profile if found
   if (hendonEl && data.profileUrl) {
     hendonEl.href = data.profileUrl;
     hendonEl.textContent = 'Hendon Mob ↗';
   }
- 
+
   // Calculate danger level
   let danger = 'low', dangerText = '🟢', dangerClass = 'danger-green';
   const earnings = data.earnings ? parseInt(data.earnings.replace(/[$,]/g, '')) : 0;
   if (earnings > 1000000) { danger = 'high'; dangerText = '🔴'; dangerClass = 'danger-red'; }
   else if (earnings > 200000) { danger = 'mid'; dangerText = '🟡'; dangerClass = 'danger-orange'; }
- 
+
   if (dangerEl) { dangerEl.textContent = dangerText; dangerEl.className = 'danger-tag ' + dangerClass; }
- 
+
   // Render stats
   const stats = [
     { label: 'Gains totaux', val: data.earnings || '—', cls: 'earnings' },
@@ -349,14 +350,37 @@ function updateCardStats(idx, data, name) {
     { label: 'Meilleur cash', val: data.bestCash || '—', cls: '' },
     { label: 'Classement', val: data.ranking || '—', cls: '' },
   ];
- 
+
+  // Calculate avg buyin
+  let avgBuyin = data.avgBuyin || null;
+  if (!avgBuyin && data.recentBuyins && data.recentBuyins.length > 0) {
+    avgBuyin = Math.round(data.recentBuyins.reduce((a,b) => a+b, 0) / data.recentBuyins.length);
+  }
+  if (!avgBuyin && data.earnings && data.cashes) {
+    const earningsNum = parseInt((data.earnings||'').replace(/[$,]/g,''));
+    avgBuyin = Math.round(earningsNum / data.cashes / 6);
+  }
+
+  const fmt = v => v ? '$' + Number(v).toLocaleString() : '—';
+
+  const stats = [
+    { label: 'Gains totaux', val: data.earnings || '—', cls: 'earnings', full: true },
+    { label: 'Cashes ITM', val: data.cashes || '—', cls: '' },
+    { label: 'Meilleur cash', val: data.bestCash || '—', cls: '' },
+    { label: 'Mise moyenne', val: avgBuyin ? fmt(avgBuyin) : '—', cls: '' },
+    { label: 'Gains 2026', val: data.earningsThisYear || '—', cls: 'earnings' },
+    { label: 'Classement', val: data.ranking || '—', cls: '' },
+    { label: 'Premier ITM', val: data.firstCash || '—', cls: '' },
+    { label: 'Dernier ITM', val: data.lastCash || '—', cls: '' },
+  ];
+
   statsEl.innerHTML = `<div class="stats-grid">${stats.map(s => `
-    <div class="stat-item">
+    <div class="stat-item ${s.full ? 'stat-full' : ''}">
       <div class="stat-label">${s.label}</div>
       <div class="stat-val ${s.cls}">${escHtml(String(s.val))}</div>
     </div>`).join('')}</div>`;
 }
- 
+
 function showError(msg) { errorBox.textContent = '⚠ ' + msg; errorBox.style.display = 'block'; }
 function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
