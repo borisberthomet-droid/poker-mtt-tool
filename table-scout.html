@@ -217,6 +217,8 @@ Extrais tous les joueurs visibles. Réponds UNIQUEMENT en JSON valide, sans back
       }
     });
 
+    console.log('vision response:', JSON.stringify(data).slice(0, 300));
+    if (!data.content) throw new Error('Réponse invalide du Worker: ' + JSON.stringify(data).slice(0, 200));
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
