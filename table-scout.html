@@ -309,10 +309,12 @@ async function scoutAllPlayers() {
 async function scoutPlayer(player, idx) {
   try {
     const data = await callWorker({ route: 'scout', name: player.name });
+    console.log('scout result for', player.name, data);
     updateCardStats(idx, data, player.name);
   } catch(e) {
+    console.error('scout error for', player.name, e);
     const statsEl = document.getElementById(`stats_${idx}`);
-    if (statsEl) statsEl.innerHTML = '';
+    if (statsEl) statsEl.innerHTML = `<div style="padding:8px 16px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">Erreur: ${e.message}</div>`;
   }
 }
 
