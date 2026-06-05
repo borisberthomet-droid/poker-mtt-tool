@@ -655,7 +655,7 @@ function flag(code) {
   return code && FLAGS[code.toUpperCase()] ? FLAGS[code.toUpperCase()] : '';
 }
 
-function hendonUrl(name) { return `https://pokerdb.thehendonmob.com/player_search.php?q=${encodeURIComponent(name)}`; }
+function hendonUrl(name) { return `https://www.thehendonmob.com/search?q=${encodeURIComponent(name)}&cat=players`; }
 function p5Url(name) { return `https://www.pocketfives.com/search/?search=${encodeURIComponent(name)}`; }
 function wsopUrl(name) { return `https://www.wsop.com/players/search/?search=${encodeURIComponent(name)}`; }
 function googleUrl(name) { return `https://www.google.com/search?q=${encodeURIComponent(name + ' poker')}`; }
