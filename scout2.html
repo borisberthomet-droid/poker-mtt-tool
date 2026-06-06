@@ -297,9 +297,27 @@ async function scoutAll() {
 
 async function scoutOne(p, idx) {
   try {
-    const data = await callWorker({ route: 'scout', name: p.name });
-    applyStats(idx, data);
+    const prompt = `Search The Hendon Mob for poker player "${p.name}" and return ONLY valid JSON, no backticks:
+{"found":true,"profileUrl":"direct hendon mob URL or null","earnings":"$X,XXX,XXX or null","cashes":number_or_null,"bestCash":"$X or null","ranking":"Nth all time or null","firstCash":"YYYY or null","lastCash":"Month YYYY or null","earningsThisYear":"$X or null","avgBuyin":number_or_null}`;
+
+    const data = await callWorker({
+      route: 'anthropic',
+      payload: {
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }]
+      }
+    });
+
+    if (!data.content) { applyStats(idx, {found:false}); return; }
+    const txt = data.content.map(i => i.text||'').join('');
+    if (!txt) { applyStats(idx, {found:false}); return; }
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    applyStats(idx, parsed);
   } catch(e) {
+    console.error('scout error', p.name, e);
     const el = document.getElementById('stats_'+idx);
     if (el) el.innerHTML = '';
   }
