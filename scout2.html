@@ -215,7 +215,6 @@ async function analyze() {
     btn.style.display = 'none';
     document.getElementById('btnReset').style.display = 'block';
     render();
-    scoutAll();
   } catch(e) {
     st.style.display = 'none';
     btn.disabled = false;
@@ -280,27 +279,21 @@ function card(p, idx) {
       </div>
     </div>
     ${!isHero ? `
-    <div id="stats_${idx}"><div class="scout-status"><div class="mini-spin"></div>&nbsp;Recherche...</div></div>
+    <div id="stats_${idx}"><div class="scout-status"><button class="pill" id="search_${idx}" onclick="scoutOne(players.filter(p=>!p.is_hero)[${idx}], ${idx})">🔍 Rechercher</button></div></div>
     <div class="name-row"><input class="name-input" id="${editId}" value="${esc(p.name)}" placeholder="Corriger le nom..."></div>
     <div class="links">
       <a class="pill hm" id="hm_${idx}" href="${hmUrl}" target="_blank">Hendon Mob</a>
       <a class="pill" href="${p5Url}" target="_blank">PocketFives</a>
       <a class="pill" href="${wsopUrl}" target="_blank">WSOP</a>
       <a class="pill" href="${gUrl}" target="_blank">Google</a>
-      <button class="pill notion" id="notion_${idx}" onclick="pushToNotion(${idx})">→ Notion</button>
+      <button class="pill notion" id="notion_${idx}" onclick="pushToNotion(${idx})" disabled style="opacity:0.3;cursor:not-allowed">⏳ Notion</button>
     </div>` : ''}
   </div>`;
 }
 
-async function scoutAll() {
-  const opps = players.filter(p => !p.is_hero);
-  for (let i = 0; i < opps.length; i++) {
-    scoutOne(opps[i], i);
-    await new Promise(r => setTimeout(r, 3000));
-  }
-}
-
 async function scoutOne(p, idx) {
+  const searchBtn = document.getElementById('search_' + idx);
+  if (searchBtn) { searchBtn.disabled = true; searchBtn.textContent = '⏳ Recherche...'; }
   try {
     const prompt = `Search The Hendon Mob for poker player "${p.name}" and return ONLY valid JSON, no backticks:
 {"found":true,"profileUrl":"direct hendon mob URL or null","earnings":"$X,XXX,XXX or null","cashes":number_or_null,"bestCash":"$X or null","ranking":"Nth all time or null","firstCash":"YYYY or null","lastCash":"Month YYYY or null","earningsThisYear":"$X or null","avgBuyin":number_or_null}`;
@@ -389,6 +382,14 @@ function applyStats(idx, d) {
   const hmEl = document.getElementById('hm_'+idx);
   if (!statsEl) return;
   playerStats[idx] = d;
+  // Enable Notion button now that stats are loaded
+  const notionBtn = document.getElementById('notion_' + idx);
+  if (notionBtn) {
+    notionBtn.disabled = false;
+    notionBtn.style.opacity = '1';
+    notionBtn.style.cursor = 'pointer';
+    notionBtn.textContent = '→ Notion';
+  }
 
   if (!d || !d.found) {
     statsEl.innerHTML = '';
