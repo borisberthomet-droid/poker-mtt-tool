@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notion Push — Poker MTT Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f0e; --bg2:#141716; --bg3:#1c201e;
+  --border:#2a2f2c; --border2:#3a403c;
+  --text:#e8ede9; --text2:#8a9690; --text3:#566058;
+  --green:#4ade80; --gdim:#1a3326; --gmid:#22c55e;
+  --amber:#fbbf24; --adim:#2d2208;
+  --red:#f87171; --rdim:#2d1010;
+  --purple:#818cf8; --pdim:#1e1b4b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{border-bottom:1px solid var(--border);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--text)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--purple)}
+.badge{font-family:'DM Mono',monospace;font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);color:var(--text3)}
+main{flex:1;padding:1.5rem;max-width:600px;margin:0 auto;width:100%}
+h1{font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px}
+.sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem}
+.api-row{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+.api-row label{font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;white-space:nowrap}
+.api-row input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;min-width:0}
+.show-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace;padding:2px 6px}
+.label{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}
+textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none;resize:vertical;min-height:200px;line-height:1.6;margin-bottom:1rem;transition:border-color 0.15s}
+textarea:focus{border-color:var(--purple)}
+textarea::placeholder{color:var(--text3)}
+.btn-push{width:100%;padding:16px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:opacity 0.15s;margin-bottom:1rem}
+.btn-push:hover{opacity:0.9}
+.btn-push:disabled{opacity:0.4;cursor:not-allowed}
+.btn-clear{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border2);background:none;color:var(--text2);font-family:'Syne',sans-serif;font-size:14px;cursor:pointer;margin-bottom:1.5rem}
+.result{border-radius:12px;padding:16px;margin-bottom:1rem;font-size:14px;display:none}
+.result.success{background:var(--gdim);border:1px solid var(--gmid);color:var(--green)}
+.result.error{background:var(--rdim);border:1px solid var(--red);color:var(--red)}
+.history{margin-top:1.5rem}
+.history-title{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+.history-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.history-name{font-size:14px;font-weight:600}
+.history-meta{font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:2px}
+.history-badge{font-size:11px;padding:3px 10px;border-radius:100px;background:var(--gdim);color:var(--green);border:1px solid var(--gmid);font-family:'DM Mono',monospace}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{border-top:1px solid var(--border);padding:1rem 1.5rem;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="dot"></div>Notion Push</div>
+  <span class="badge">MTT TOOL</span>
+</header>
+<main>
+  <h1>Push vers Notion</h1>
+  <p class="sub">Colle le JSON généré par Claude → envoi direct dans ta Bibliothèque de Regs</p>
+
+  <div class="api-row">
+    <label>API KEY</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
+    <button class="show-btn" id="showBtn">show</button>
+  </div>
+
+  <div class="label">JSON joueur</div>
+  <textarea id="jsonInput" placeholder='{"name":"Arthur Peacock","country":"USA","danger":"🔴 Élevé","earnings":2495877,...}'></textarea>
+
+  <button class="btn-push" id="btnPush">→ Envoyer dans Notion</button>
+  <button class="btn-clear" id="btnClear">✕ Effacer</button>
+
+  <div class="result" id="result"></div>
+
+  <div class="history" id="history" style="display:none">
+    <div class="history-title">Fiches envoyées aujourd'hui</div>
+    <div id="historyList"></div>
+  </div>
+</main>
+<footer>Boris Berthomet · Poker MTT Tool · Notion Push</footer>
+
+<script>
+const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev/';
+const history = [];
+
+const savedKey = localStorage.getItem('scout_key');
+if (savedKey) document.getElementById('apiKey').value = savedKey;
+document.getElementById('apiKey').addEventListener('input', e => localStorage.setItem('scout_key', e.target.value));
+
+document.getElementById('showBtn').addEventListener('click', () => {
+  const inp = document.getElementById('apiKey');
+  const btn = document.getElementById('showBtn');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? 'show' : 'hide';
+});
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  document.getElementById('jsonInput').value = '';
+  document.getElementById('result').style.display = 'none';
+});
+
+document.getElementById('btnPush').addEventListener('click', async () => {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const jsonRaw = document.getElementById('jsonInput').value.trim();
+  const btn = document.getElementById('btnPush');
+  const result = document.getElementById('result');
+
+  if (!apiKey) { showResult('error', '⚠ Entre ta clé API Anthropic en haut.'); return; }
+  if (!jsonRaw) { showResult('error', '⚠ Colle le JSON généré par Claude.'); return; }
+
+  let player;
+  try {
+    player = JSON.parse(jsonRaw);
+  } catch(e) {
+    showResult('error', '⚠ JSON invalide. Vérifie la syntaxe.');
+    return;
+  }
+
+  if (!player.name) { showResult('error', '⚠ Le champ "name" est obligatoire.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Envoi en cours...';
+  result.style.display = 'none';
+
+  try {
+    const resp = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+      body: JSON.stringify({ route: 'notion', player })
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      showResult('success', `✅ ${player.name} ajouté dans Notion !`);
+      addToHistory(player);
+      document.getElementById('jsonInput').value = '';
+    } else {
+      showResult('error', `❌ Erreur Notion : ${data.error}`);
+    }
+  } catch(e) {
+    showResult('error', '❌ Erreur réseau : ' + e.message);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '→ Envoyer dans Notion';
+});
+
+function showResult(type, msg) {
+  const el = document.getElementById('result');
+  el.className = 'result ' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function addToHistory(player) {
+  history.unshift({ name: player.name, danger: player.danger || '—', time: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) });
+  const histEl = document.getElementById('history');
+  const listEl = document.getElementById('historyList');
+  histEl.style.display = 'block';
+  listEl.innerHTML = history.map(h => `
+    <div class="history-item">
+      <div>
+        <div class="history-name">${h.name}</div>
+        <div class="history-meta">${h.time}</div>
+      </div>
+      <span class="history-badge">✅ Envoyé</span>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>
