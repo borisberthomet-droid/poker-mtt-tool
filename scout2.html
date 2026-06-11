@@ -75,6 +75,10 @@ h1{font-size:26px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px}
 .pill:hover{border-color:var(--green);color:var(--green);background:var(--gdim)}
 .pill.hm{border-color:var(--amber);color:var(--amber)}
 .pill.hm:hover{background:var(--adim)}
+.pill.notion{border-color:#6366f1;color:#6366f1}
+.pill.notion:hover{background:#1e1b4b;border-color:#818cf8;color:#818cf8}
+.pill.notion.sent{border-color:var(--green);color:var(--green);background:var(--gdim)}
+.pill.notion.loading{opacity:0.5;cursor:not-allowed}
 footer{border-top:1px solid var(--border);padding:1rem 2rem;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center}
 </style>
 </head>
@@ -86,20 +90,20 @@ footer{border-top:1px solid var(--border);padding:1rem 2rem;font-size:12px;color
 <main>
   <h1>Scout ta table</h1>
   <p class="sub">Upload une screenshot → joueurs détectés + stats automatiques</p>
- 
+
   <div class="api-row">
     <label>API KEY</label>
     <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
     <button class="show-btn" id="showBtn">show</button>
   </div>
- 
+
   <div class="upload-area" id="uploadArea">
     <div style="font-size:32px">📷</div>
     <p style="margin-top:8px;font-size:14px;color:var(--text2)">Screenshot de ta table</p>
     <label class="upload-btn" for="fileInput">Sélectionner un fichier</label>
     <input type="file" id="fileInput" accept="image/*">
   </div>
- 
+
   <img id="previewImg" alt="preview">
   <button class="btn-analyze" id="btnAnalyze">🔍 Analyser les joueurs</button>
   <button class="btn-reset" id="btnReset">↩ Nouvelle analyse</button>
@@ -108,28 +112,28 @@ footer{border-top:1px solid var(--border);padding:1rem 2rem;font-size:12px;color
   <div id="results"></div>
 </main>
 <footer>Boris Berthomet · Poker MTT Tool · Table Scout</footer>
- 
+
 <script>
 const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev/';
 const FLAGS = {US:"🇺🇸",FR:"🇫🇷",GB:"🇬🇧",DE:"🇩🇪",CA:"🇨🇦",AU:"🇦🇺",ES:"🇪🇸",IT:"🇮🇹",PT:"🇵🇹",BR:"🇧🇷",NL:"🇳🇱",BE:"🇧🇪",RU:"🇷🇺",UA:"🇺🇦",PL:"🇵🇱",SE:"🇸🇪",FI:"🇫🇮",NO:"🇳🇴",TH:"🇹🇭",JP:"🇯🇵"};
- 
+
 let b64 = null, mime = 'image/jpeg', players = [];
- 
+
 // Load saved key
 const sk = localStorage.getItem('scout_key');
 if (sk) document.getElementById('apiKey').value = sk;
- 
+
 document.getElementById('apiKey').addEventListener('input', e => {
   localStorage.setItem('scout_key', e.target.value);
 });
- 
+
 document.getElementById('showBtn').addEventListener('click', () => {
   const inp = document.getElementById('apiKey');
   const btn = document.getElementById('showBtn');
   if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'hide'; }
   else { inp.type = 'password'; btn.textContent = 'show'; }
 });
- 
+
 document.getElementById('fileInput').addEventListener('change', e => {
   const f = e.target.files[0];
   if (!f) return;
@@ -148,7 +152,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
   };
   r.readAsDataURL(f);
 });
- 
+
 document.getElementById('btnReset').addEventListener('click', () => {
   b64 = null;
   document.getElementById('previewImg').style.display = 'none';
@@ -159,9 +163,9 @@ document.getElementById('btnReset').addEventListener('click', () => {
   document.getElementById('results').innerHTML = '';
   document.getElementById('errbox').style.display = 'none';
 });
- 
+
 document.getElementById('btnAnalyze').addEventListener('click', analyze);
- 
+
 async function callWorker(body) {
   const key = document.getElementById('apiKey').value.trim();
   const r = await fetch(WORKER, {
@@ -171,12 +175,12 @@ async function callWorker(body) {
   });
   return r.json();
 }
- 
+
 async function analyze() {
   const key = document.getElementById('apiKey').value.trim();
   if (!key) { showErr('Entre ta clé API Anthropic.'); return; }
   if (!b64) { showErr('Sélectionne une image.'); return; }
- 
+
   const btn = document.getElementById('btnAnalyze');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div>&nbsp;Détection...';
@@ -185,10 +189,10 @@ async function analyze() {
   document.getElementById('statusTxt').textContent = 'Détection des joueurs...';
   document.getElementById('errbox').style.display = 'none';
   document.getElementById('results').innerHTML = '';
- 
+
   const prompt = `Analyse cette screenshot de table de poker en ligne. Retourne UNIQUEMENT du JSON valide sans backticks:
 {"players":[{"name":"nom exact","stack":"ex: 235.0K","country":"code ISO 2 lettres ou null","is_hero":true si nom en ORANGE sinon false}]}`;
- 
+
   try {
     const data = await callWorker({
       route: 'anthropic',
@@ -201,12 +205,12 @@ async function analyze() {
         ]}]
       }
     });
- 
+
     if (!data.content) throw new Error('Réponse invalide: ' + JSON.stringify(data).slice(0,150));
     const txt = data.content.map(i => i.text||'').join('');
     const clean = txt.replace(/```json|```/g,'').trim();
     players = JSON.parse(clean).players || [];
- 
+
     st.style.display = 'none';
     btn.style.display = 'none';
     document.getElementById('btnReset').style.display = 'block';
@@ -219,7 +223,7 @@ async function analyze() {
     showErr('Erreur: ' + e.message);
   }
 }
- 
+
 function ini(name) {
   return (name||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'??';
 }
@@ -234,7 +238,7 @@ function showErr(msg) {
   b.textContent = '⚠ ' + msg;
   b.style.display = 'block';
 }
- 
+
 function render() {
   const hero = players.find(p => p.is_hero);
   const opps = players.filter(p => !p.is_hero);
@@ -251,7 +255,7 @@ function render() {
   }
   document.getElementById('results').innerHTML = html;
 }
- 
+
 function card(p, idx) {
   const isHero = p.is_hero;
   const f = fl(p.country);
@@ -260,7 +264,7 @@ function card(p, idx) {
   const p5Url = `https://www.pocketfives.com/search/?search=${encodeURIComponent(p.name)}`;
   const wsopUrl = `https://www.wsop.com/players/search/?search=${encodeURIComponent(p.name)}`;
   const gUrl = `https://www.google.com/search?q=${encodeURIComponent(p.name+' poker')}`;
- 
+
   return `<div class="card ${isHero?'hero':''}" id="card_${idx}">
     <div class="card-top">
       <div class="av ${isHero?'h':''}">${ini(p.name)}</div>
@@ -283,10 +287,11 @@ function card(p, idx) {
       <a class="pill" href="${p5Url}" target="_blank">PocketFives</a>
       <a class="pill" href="${wsopUrl}" target="_blank">WSOP</a>
       <a class="pill" href="${gUrl}" target="_blank">Google</a>
+      <button class="pill notion" id="notion_${idx}" onclick="pushToNotion(${idx})">→ Notion</button>
     </div>` : ''}
   </div>`;
 }
- 
+
 async function scoutAll() {
   const opps = players.filter(p => !p.is_hero);
   for (let i = 0; i < opps.length; i++) {
@@ -294,12 +299,12 @@ async function scoutAll() {
     await new Promise(r => setTimeout(r, 3000));
   }
 }
- 
+
 async function scoutOne(p, idx) {
   try {
     const prompt = `Search The Hendon Mob for poker player "${p.name}" and return ONLY valid JSON, no backticks:
 {"found":true,"profileUrl":"direct hendon mob URL or null","earnings":"$X,XXX,XXX or null","cashes":number_or_null,"bestCash":"$X or null","ranking":"Nth all time or null","firstCash":"YYYY or null","lastCash":"Month YYYY or null","earningsThisYear":"$X or null","avgBuyin":number_or_null}`;
- 
+
     const data = await callWorker({
       route: 'anthropic',
       payload: {
@@ -309,7 +314,7 @@ async function scoutOne(p, idx) {
         messages: [{ role: 'user', content: prompt }]
       }
     });
- 
+
     if (!data.content) { applyStats(idx, {found:false}); return; }
     const txt = data.content.map(i => i.text||'').join('');
     if (!txt) { applyStats(idx, {found:false}); return; }
@@ -322,34 +327,90 @@ async function scoutOne(p, idx) {
     if (el) el.innerHTML = '';
   }
 }
- 
+
+async function pushToNotion(idx) {
+  const btn = document.getElementById('notion_' + idx);
+  if (!btn || btn.classList.contains('sent')) return;
+  
+  btn.classList.add('loading');
+  btn.textContent = '⏳ Envoi...';
+
+  const p = players.filter(p => !p.is_hero)[idx];
+  const statsEl = document.getElementById('stats_' + idx);
+  const editEl = document.getElementById('edit_' + idx);
+  const name = editEl ? editEl.value : p.name;
+  const hmEl = document.getElementById('hm_' + idx);
+
+  // Récupérer les stats affichées
+  const d = playerStats[idx] || {};
+
+  const playerData = {
+    name: name,
+    country: p.country || '',
+    danger: d.danger || '',
+    earnings: d.earnings ? parseInt(d.earnings.replace(/[$,]/g,'')) : null,
+    cashes: d.cashes || null,
+    bestCash: d.bestCash ? parseInt(d.bestCash.replace(/[$,]/g,'')) : null,
+    avgBuyin: d.avgBuyin || null,
+    firstCash: d.firstCash || null,
+    lastCash: d.lastCash || null,
+    itmPerYear: d.itmPerYear || null,
+    onlineUsernames: d.onlineUsernames || null,
+    hendonUrl: hmEl ? hmEl.href : null,
+    style: d.style || null,
+    armes: d.armes || null,
+    failles: d.failles || null,
+    background: d.background || null,
+  };
+
+  try {
+    const result = await callWorker({ route: 'notion', player: playerData });
+    if (result.success) {
+      btn.classList.remove('loading');
+      btn.classList.add('sent');
+      btn.textContent = '✅ Notion';
+    } else {
+      btn.classList.remove('loading');
+      btn.textContent = '❌ Erreur';
+      console.error('Notion error:', result.error);
+    }
+  } catch(e) {
+    btn.classList.remove('loading');
+    btn.textContent = '❌ Erreur';
+    console.error('Push error:', e);
+  }
+}
+
+const playerStats = {};
+
 function applyStats(idx, d) {
   const statsEl = document.getElementById('stats_'+idx);
   const dtagEl = document.getElementById('dtag_'+idx);
   const hmEl = document.getElementById('hm_'+idx);
   if (!statsEl) return;
- 
+  playerStats[idx] = d;
+
   if (!d || !d.found) {
     statsEl.innerHTML = '';
     if (dtagEl) { dtagEl.textContent = '🟢'; dtagEl.className = 'dtag dg'; }
     return;
   }
- 
+
   if (hmEl && d.profileUrl) { hmEl.href = d.profileUrl; hmEl.textContent = 'Hendon Mob ↗'; }
- 
+
   const earn = d.earnings ? parseInt(d.earnings.replace(/[$,]/g,'')) : 0;
   let dc = 'dg', dt = '🟢';
   if (earn > 1000000) { dc = 'dr'; dt = '🔴'; }
   else if (earn > 200000) { dc = 'do'; dt = '🟡'; }
   if (dtagEl) { dtagEl.textContent = dt; dtagEl.className = 'dtag '+dc; }
- 
+
   let avg = d.avgBuyin || null;
   if (!avg && d.recentBuyins && d.recentBuyins.length) {
     avg = Math.round(d.recentBuyins.reduce((a,b)=>a+b,0)/d.recentBuyins.length);
   }
   if (!avg && earn && d.cashes) avg = Math.round(earn / d.cashes / 6);
   const fmt = v => v ? '$'+Number(v).toLocaleString() : '—';
- 
+
   statsEl.innerHTML = `<div class="stats-grid">
     <div class="stat full"><div class="slbl">Gains totaux</div><div class="sval earn">${esc(d.earnings||'—')}</div></div>
     <div class="stat"><div class="slbl">Cashes ITM</div><div class="sval">${esc(String(d.cashes||'—'))}</div></div>
