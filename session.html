@@ -467,10 +467,9 @@ async function createSemaine() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        route: 'notion_create_competence',
+        route: 'notion_create_semaine',
         database_id: SEMAINES_DB,
-        nom,
-        domaine: 'Autre'
+        nom
       })
     });
     const data = await resp.json();
