@@ -523,19 +523,6 @@ async function submit() {
   if (state.sousCategorie) properties['Sous-catégorie'] = { select: { name: state.sousCategorie } };
 
   try {
-    const resp = await fetch(WORKER, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        route: 'notion_create_competence',
-        database_id: SESSIONS_DB,
-        nom,
-        domaine: state.categorie,
-        _raw_properties: properties
-      })
-    });
-
-    // On utilise une route générique — push direct
     const resp2 = await fetch(WORKER, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -546,6 +533,7 @@ async function submit() {
       })
     });
     const data = await resp2.json();
+
 
     if (data.success) {
       showToast('✅ Session enregistrée !', 'ok');
