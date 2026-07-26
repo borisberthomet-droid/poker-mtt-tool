@@ -517,7 +517,7 @@ async function submit() {
     'Catégorie': { select: { name: state.categorie } },
     'Durée (min)': { number: duree },
     'Date': { date: { start: today } },
-    'Semaine': { relation: [{ id: state.semaineId }] }
+    'Semaines': { relation: [{ id: state.semaineId }] }
   };
 
   if (state.sousCategorie) properties['Sous-catégorie'] = { select: { name: state.sousCategorie } };
