@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #1e1e28;
+    --border: #2a2a38;
+    --accent: #7c6af7;
+    --accent-dim: #3d3580;
+    --text: #e8e6f0;
+    --text-dim: #6b6880;
+    --text-mid: #9d9ab0;
+    --green: #4ade80;
+    --font: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding-bottom: 60px; }
+
+  .header { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; padding: 24px; }
+  .tab-content.active { display: block; }
+
+  /* Lifetime stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .stat-emoji { font-size: 20px; margin-bottom: 8px; }
+  .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* Section title */
+  .section-title { font-size: 13px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+
+  /* Tableau croisé */
+  .table-wrap { overflow-x: auto; margin-bottom: 32px; }
+  table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+  th { background: var(--surface2); color: var(--text-dim); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.total { font-weight: 700; color: var(--accent); }
+  td.zero { color: var(--text-dim); }
+  tr:hover td { background: var(--surface); }
+  .total-row td { background: var(--surface2); font-weight: 700; border-top: 1px solid var(--border); }
+
+  /* Bar chart */
+  .bar-list { display: flex; flex-direction: column; gap: 10px; }
+  .bar-item { display: flex; align-items: center; gap: 12px; }
+  .bar-label { font-size: 13px; min-width: 160px; color: var(--text-mid); flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--surface); border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+  .bar-value { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text-dim); min-width: 60px; text-align: right; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 60px; color: var(--text-dim); font-size: 14px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .refresh-btn { background: none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer; float: right; margin-top: -4px; }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Dashboard</h1>
+  <div class="header-sub" id="last-update">Chargement...</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('lifetime')">Lifetime</div>
+  <div class="tab" onclick="switchTab('semaines')">Par semaine</div>
+  <div class="tab" onclick="switchTab('souscats')">Sous-catégories</div>
+</div>
+
+<!-- TAB : Lifetime -->
+<div class="tab-content active" id="tab-lifetime">
+  <div class="loading" id="loading-lifetime"><div class="spinner"></div>Chargement des données...</div>
+  <div id="content-lifetime" style="display:none">
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="section-title">Heures par catégorie <button class="refresh-btn" onclick="loadData()">↻ Rafraîchir</button></div>
+    <div class="bar-list" id="bar-cats"></div>
+  </div>
+</div>
+
+<!-- TAB : Par semaine -->
+<div class="tab-content" id="tab-semaines">
+  <div class="loading" id="loading-semaines" style="display:none"><div class="spinner"></div>Chargement...</div>
+  <div id="content-semaines">
+    <div class="table-wrap">
+      <table id="table-semaines">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB : Sous-catégories -->
+<div class="tab-content" id="tab-souscats">
+  <div id="content-souscats">
+    <div class="bar-list" id="bar-souscats"></div>
+  </div>
+</div>
+
+<script>
+const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev';
+const SESSIONS_DB = '3a938f0c-b1ca-8184-983b-ec5b89e26311';
+const SEMAINES_DB = '3a938f0c-b1ca-81f6-aa6d-d26f85d9efe2';
+
+const CATS = ['Technique Poker', 'Mental', 'Physique', 'Coaching', 'Business'];
+const CAT_EMOJIS = { 'Technique Poker': '♠️', 'Mental': '🧠', 'Physique': '💪', 'Coaching': '🎓', 'Business': '📈' };
+
+let allSessions = [];
+let allSemaines = [];
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+function minToH(min) {
+  if (!min) return '0h';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h > 0 ? (m > 0 ? `${h}h${m.toString().padStart(2,'0')}` : `${h}h`) : `${m}min`;
+}
+
+async function loadData() {
+  // Sessions
+  const r1 = await fetch(WORKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ route: 'notion_get_sessions', database_id: SESSIONS_DB })
+  });
+  const d1 = await r1.json();
+  allSessions = d1.sessions || [];
+
+  // Semaines
+  const r2 = await fetch(WORKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ route: 'notion_get_semaines', database_id: SEMAINES_DB })
+  });
+  const d2 = await r2.json();
+  allSemaines = d2.semaines || [];
+
+  renderLifetime();
+  renderSemaines();
+  renderSousCats();
+
+  document.getElementById('loading-lifetime').style.display = 'none';
+  document.getElementById('content-lifetime').style.display = 'block';
+  document.getElementById('last-update').textContent = `Mis à jour le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
+}
+
+function renderLifetime() {
+  const totalMin = allSessions.reduce((s, x) => s + x.duree, 0);
+  const totalSessions = allSessions.length;
+
+  // Stats cards
+  const grid = document.getElementById('stats-grid');
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-emoji">⏱️</div>
+      <div class="stat-label">Total</div>
+      <div class="stat-value">${minToH(totalMin)}</div>
+      <div class="stat-sub">${totalSessions} sessions</div>
+    </div>
+  `;
+
+  CATS.forEach(cat => {
+    const min = allSessions.filter(s => s.categorie === cat).reduce((s, x) => s + x.duree, 0);
+    if (min > 0) {
+      grid.innerHTML += `
+        <div class="stat-card">
+          <div class="stat-emoji">${CAT_EMOJIS[cat]}</div>
+          <div class="stat-label">${cat}</div>
+          <div class="stat-value">${minToH(min)}</div>
+        </div>
+      `;
+    }
+  });
+
+  // Barres
+  const maxMin = Math.max(...CATS.map(cat => allSessions.filter(s => s.categorie === cat).reduce((s, x) => s + x.duree, 0)));
+  const barList = document.getElementById('bar-cats');
+  barList.innerHTML = '';
+  CATS.forEach(cat => {
+    const min = allSessions.filter(s => s.categorie === cat).reduce((s, x) => s + x.duree, 0);
+    const pct = maxMin > 0 ? (min / maxMin * 100) : 0;
+    barList.innerHTML += `
+      <div class="bar-item">
+        <div class="bar-label">${CAT_EMOJIS[cat]} ${cat}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-value">${minToH(min)}</div>
+      </div>
+    `;
+  });
+}
+
+function renderSemaines() {
+  if (allSemaines.length === 0) return;
+
+  const thead = document.querySelector('#table-semaines thead');
+  const tbody = document.querySelector('#table-semaines tbody');
+
+  // Header
+  thead.innerHTML = `<tr><th>Semaine</th>${CATS.map(c => `<th>${CAT_EMOJIS[c]} ${c.split(' ')[0]}</th>`).join('')}<th>Total</th></tr>`;
+
+  // Rows
+  tbody.innerHTML = '';
+  const totals = {};
+  CATS.forEach(c => totals[c] = 0);
+  let grandTotal = 0;
+
+  allSemaines.forEach(sem => {
+    const sessSem = allSessions.filter(s => s.semaine === sem.id);
+    const row = document.createElement('tr');
+    let rowTotal = 0;
+    let cells = `<td>${sem.nom}</td>`;
+    CATS.forEach(cat => {
+      const min = sessSem.filter(s => s.categorie === cat).reduce((s, x) => s + x.duree, 0);
+      totals[cat] += min;
+      rowTotal += min;
+      cells += `<td class="num ${min === 0 ? 'zero' : ''}">${min > 0 ? minToH(min) : '—'}</td>`;
+    });
+    grandTotal += rowTotal;
+    cells += `<td class="num total">${minToH(rowTotal)}</td>`;
+    row.innerHTML = cells;
+    tbody.appendChild(row);
+  });
+
+  // Total row
+  const totalRow = document.createElement('tr');
+  totalRow.className = 'total-row';
+  let totalCells = `<td>Total</td>`;
+  CATS.forEach(cat => { totalCells += `<td class="num">${minToH(totals[cat])}</td>`; });
+  totalCells += `<td class="num total">${minToH(grandTotal)}</td>`;
+  totalRow.innerHTML = totalCells;
+  tbody.appendChild(totalRow);
+}
+
+function renderSousCats() {
+  const sousCatTotals = {};
+  allSessions.forEach(s => {
+    if (s.sousCategorie) {
+      sousCatTotals[s.sousCategorie] = (sousCatTotals[s.sousCategorie] || 0) + s.duree;
+    }
+  });
+
+  const sorted = Object.entries(sousCatTotals).sort((a, b) => b[1] - a[1]);
+  const maxMin = sorted[0]?.[1] || 1;
+
+  const barList = document.getElementById('bar-souscats');
+  barList.innerHTML = '';
+  sorted.forEach(([name, min]) => {
+    const pct = min / maxMin * 100;
+    barList.innerHTML += `
+      <div class="bar-item">
+        <div class="bar-label">${name}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-value">${minToH(min)}</div>
+      </div>
+    `;
+  });
+
+  if (sorted.length === 0) {
+    barList.innerHTML = '<div style="color:var(--text-dim);font-size:14px">Aucune donnée pour l\'instant.</div>';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
