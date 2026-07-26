@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session de travail</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #1e1e28;
+    --border: #2a2a38;
+    --accent: #7c6af7;
+    --accent-dim: #3d3580;
+    --text: #e8e6f0;
+    --text-dim: #6b6880;
+    --text-mid: #9d9ab0;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --font: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  .header {
+    padding: 32px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-date { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    min-width: 120px;
+    flex-shrink: 0;
+  }
+
+  .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .form {
+    padding: 24px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .section { margin-bottom: 24px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-mid);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+  .chip.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--text); }
+
+  /* Sous-catégories groupées */
+  .sous-cats { display: none; }
+  .sous-cats.visible { display: block; }
+
+  .sous-cat-group { margin-bottom: 12px; }
+  .sous-cat-group-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+
+  /* Input texte */
+  input[type="text"], textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-dim); }
+
+  /* Durée */
+  .duree-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .duree-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 24px;
+    font-weight: 700;
+    padding: 14px 16px;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+
+  .duree-input:focus { border-color: var(--accent); }
+
+  .duree-presets {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .duree-preset {
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-mid);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .duree-preset:hover { border-color: var(--accent); color: var(--text); }
+
+  .duree-unit {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 14px 0;
+    flex-shrink: 0;
+  }
+
+  /* Semaine select */
+  select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 12px 16px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  select:focus { border-color: var(--accent); }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 0 24px; }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-submit:hover { background: #6c5ce7; transform: translateY(-1px); }
+  .btn-submit:disabled { background: var(--border); color: var(--text-dim); transform: none; cursor: not-allowed; }
+
+  .btn-new-semaine {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+
+  .btn-new-semaine:hover { border-color: var(--accent); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.ok { border-color: var(--green); color: var(--green); }
+  .toast.err { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⏱️ Session de travail</h1>
+  <div class="header-date" id="today-date"></div>
+</div>
+
+<!-- Stats semaine en cours -->
+<div class="stats-bar" id="stats-bar">
+  <div class="stat-card">
+    <div class="stat-label">Cette semaine</div>
+    <div class="stat-value" id="stat-total">—</div>
+    <div class="stat-sub">minutes totales</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Sessions</div>
+    <div class="stat-value" id="stat-sessions">—</div>
+    <div class="stat-sub">cette semaine</div>
+  </div>
+</div>
+
+<div class="form">
+
+  <!-- Catégorie -->
+  <div class="section">
+    <div class="section-label"><span class="section-number">1</span>Catégorie</div>
+    <div class="chips" id="chips-cat">
+      <div class="chip" data-value="Technique Poker">♠️ Technique</div>
+      <div class="chip" data-value="Mental">🧠 Mental</div>
+      <div class="chip" data-value="Physique">💪 Physique</div>
+      <div class="chip" data-value="Coaching">🎓 Coaching</div>
+      <div class="chip" data-value="Business">📈 Business</div>
+    </div>
+  </div>
+
+  <!-- Sous-catégorie -->
+  <div class="section sous-cats" id="sous-cats">
+    <div class="section-label"><span class="section-number">2</span>Sous-catégorie</div>
+    <div id="sous-cat-content"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Focus -->
+  <div class="section">
+    <div class="section-label"><span class="section-number">3</span>Focus de la session</div>
+    <input type="text" id="focus" placeholder="Sur quoi tu travailles précisément ?">
+  </div>
+
+  <!-- Durée -->
+  <div class="section">
+    <div class="section-label"><span class="section-number">4</span>Durée</div>
+    <div class="duree-row">
+      <input type="number" class="duree-input" id="duree" placeholder="30" min="1">
+      <div class="duree-unit">min</div>
+    </div>
+    <div class="duree-presets">
+      <div class="duree-preset" onclick="setDuree(15)">15 min</div>
+      <div class="duree-preset" onclick="setDuree(30)">30 min</div>
+      <div class="duree-preset" onclick="setDuree(45)">45 min</div>
+      <div class="duree-preset" onclick="setDuree(60)">1h</div>
+      <div class="duree-preset" onclick="setDuree(90)">1h30</div>
+      <div class="duree-preset" onclick="setDuree(120)">2h</div>
+      <div class="duree-preset" onclick="setDuree(180)">3h</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Semaine -->
+  <div class="section">
+    <div class="section-label"><span class="section-number">5</span>Semaine</div>
+    <select id="semaine-select">
+      <option value="">Chargement...</option>
+    </select>
+    <button class="btn-new-semaine" onclick="createSemaine()">+ Créer la semaine en cours</button>
+  </div>
+
+  <button class="btn-submit" id="btn-submit" onclick="submit()">Enregistrer →</button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev';
+const SESSIONS_DB = '3a938f0c-b1ca-8184-983b-ec5b89e26311';
+const SEMAINES_DB = '3a938f0c-b1ca-81f6-aa6d-d26f85d9efe2';
+
+const sousCats = {
+  'Technique Poker': [
+    { group: 'Préflop / Postflop', items: ['Préflop', 'Postflop SRP IP', 'Postflop SRP OOP', 'Postflop 3BP', 'Postflop BvB', 'Postflop MW'] },
+    { group: 'ICM / PKO', items: ['ICM Préflop', 'ICM Postflop', 'PKO'] },
+    { group: 'Review', items: ['Review HH'] }
+  ],
+  'Mental': [
+    { group: '', items: ['Méditation', 'Visualisation / Préparation', 'Lecture / Podcast', 'Anglais'] }
+  ],
+  'Physique': [
+    { group: '', items: ['Sport', 'Nutrition', 'Sommeil'] }
+  ],
+  'Coaching': [
+    { group: '', items: ['Préparation cours', 'Sessions étudiants', 'Contenu / Réseaux'] }
+  ],
+  'Business': [
+    { group: '', items: ['Poker MTT Tool', 'Administratif', 'Stratégie carrière'] }
+  ]
+};
+
+const state = { categorie: null, sousCategorie: null, semaineId: null };
+
+// Date
+const now = new Date();
+document.getElementById('today-date').textContent = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+// Chips catégorie
+document.getElementById('chips-cat').querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('chips-cat').querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    state.categorie = chip.dataset.value;
+    state.sousCategorie = null;
+    renderSousCats(state.categorie);
+  });
+});
+
+function renderSousCats(cat) {
+  const container = document.getElementById('sous-cats');
+  const content = document.getElementById('sous-cat-content');
+  const groups = sousCats[cat] || [];
+  content.innerHTML = '';
+  groups.forEach(g => {
+    const div = document.createElement('div');
+    div.className = 'sous-cat-group';
+    if (g.group) div.innerHTML = `<div class="sous-cat-group-label">${g.group}</div>`;
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    g.items.forEach(item => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = item;
+      chip.addEventListener('click', () => {
+        content.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        state.sousCategorie = item;
+      });
+      chips.appendChild(chip);
+    });
+    div.appendChild(chips);
+    content.appendChild(div);
+  });
+  container.classList.add('visible');
+}
+
+function setDuree(min) { document.getElementById('duree').value = min; }
+
+// Charger semaines
+async function loadSemaines() {
+  try {
+    const resp = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ route: 'notion_get_competences', database_id: SEMAINES_DB })
+    });
+    const data = await resp.json();
+    const sel = document.getElementById('semaine-select');
+    sel.innerHTML = '<option value="">— Sélectionner une semaine —</option>';
+    (data.competences || []).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.nom;
+      sel.appendChild(opt);
+    });
+    // Sélectionner automatiquement la première (la plus récente)
+    if (data.competences?.length > 0) {
+      sel.value = data.competences[0].id;
+      state.semaineId = data.competences[0].id;
+    }
+    sel.addEventListener('change', () => { state.semaineId = sel.value || null; });
+  } catch(e) {}
+}
+
+loadSemaines();
+
+// Créer semaine en cours
+async function createSemaine() {
+  const d = new Date();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - d.getDay() + 1);
+  const dd = monday.getDate().toString().padStart(2, '0');
+  const mm = (monday.getMonth() + 1).toString().padStart(2, '0');
+  const nom = `Semaine ${getWeekNumber(d)} — ${dd}/${mm}/${monday.getFullYear()}`;
+
+  try {
+    const resp = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        route: 'notion_create_competence',
+        database_id: SEMAINES_DB,
+        nom,
+        domaine: 'Autre'
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      const sel = document.getElementById('semaine-select');
+      const opt = document.createElement('option');
+      opt.value = data.id;
+      opt.textContent = nom;
+      sel.insertBefore(opt, sel.firstChild);
+      sel.value = data.id;
+      state.semaineId = data.id;
+      showToast('✅ Semaine créée', 'ok');
+    }
+  } catch(e) {
+    showToast('❌ Erreur', 'err');
+  }
+}
+
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+// Submit
+async function submit() {
+  const focus = document.getElementById('focus').value.trim();
+  const duree = parseInt(document.getElementById('duree').value);
+
+  if (!state.categorie) return showToast('Sélectionne une catégorie', 'err');
+  if (!duree || duree < 1) return showToast('Indique la durée', 'err');
+  if (!state.semaineId) return showToast('Sélectionne une semaine', 'err');
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Envoi...';
+
+  const nom = focus || state.sousCategorie || state.categorie;
+  const today = now.toISOString().split('T')[0];
+
+  const properties = {
+    'Nom': { title: [{ text: { content: nom } }] },
+    'Catégorie': { select: { name: state.categorie } },
+    'Durée (min)': { number: duree },
+    'Date': { date: { start: today } },
+    'Sessions': { relation: [{ id: state.semaineId }] }
+  };
+
+  if (state.sousCategorie) properties['Sous-catégorie'] = { select: { name: state.sousCategorie } };
+
+  try {
+    const resp = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        route: 'notion_create_competence',
+        database_id: SESSIONS_DB,
+        nom,
+        domaine: state.categorie,
+        _raw_properties: properties
+      })
+    });
+
+    // On utilise une route générique — push direct
+    const resp2 = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        route: 'notion_push_session',
+        properties,
+        database_id: SESSIONS_DB
+      })
+    });
+    const data = await resp2.json();
+
+    if (data.success) {
+      showToast('✅ Session enregistrée !', 'ok');
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Enregistrer →';
+        resetForm();
+      }, 1500);
+    } else {
+      showToast(`❌ ${data.error || 'Erreur'}`, 'err');
+      btn.disabled = false;
+      btn.textContent = 'Enregistrer →';
+    }
+  } catch(e) {
+    showToast('❌ Erreur réseau', 'err');
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer →';
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('focus').value = '';
+  document.getElementById('duree').value = '';
+  document.getElementById('sous-cats').classList.remove('visible');
+  state.categorie = null;
+  state.sousCategorie = null;
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
