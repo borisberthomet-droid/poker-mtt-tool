@@ -161,9 +161,9 @@ const ROUTINES_DB = '3a938f0c-b1ca-8197-9303-c7d4ba179385';
 const VALIDATIONS_DB = '3b338f0c-b1ca-810b-80a1-f7711147c8c9';
 const CATS = ['Technique Poker', 'Mental', 'Physique', 'Coaching', 'Business'];
 const CAT_ICONS = { 'Technique Poker': '♠', 'Mental': '◈', 'Physique': '◉', 'Coaching': '◆', 'Business': '◇' };
-let allSessions = [], allSemaines = [], allRoutines = [], allValidations = [];
+let allSessions = [], allSemaines = [], allRoutines = [], allValidations = [], allValidationsMonth = [], allValidationsYear = [];
 
-// Dates semaine en cours
+// Dates périodes
 function getWeekBounds() {
   const now = new Date();
   const monday = new Date(now);
@@ -171,10 +171,19 @@ function getWeekBounds() {
   monday.setHours(0,0,0,0);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  return {
-    start: monday.toISOString().split('T')[0],
-    end: sunday.toISOString().split('T')[0]
-  };
+  return { start: monday.toISOString().split('T')[0], end: sunday.toISOString().split('T')[0] };
+}
+
+function getMonthBounds() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
+}
+
+function getYearBounds() {
+  const now = new Date();
+  return { start: `${now.getFullYear()}-01-01`, end: `${now.getFullYear()}-12-31` };
 }
 
 function switchTab(name, el) {
@@ -195,16 +204,25 @@ async function loadData() {
   document.getElementById('content-lifetime').style.display = 'none';
   try {
     const week = getWeekBounds();
-    const [r1, r2, r3, r4] = await Promise.all([
+    const month = getMonthBounds();
+    const year = getYearBounds();
+
+    const [r1, r2, r3, r4, r5, r6] = await Promise.all([
       fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_sessions', database_id: SESSIONS_DB}) }),
       fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_semaines', database_id: SEMAINES_DB}) }),
       fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_routines', database_id: ROUTINES_DB}) }),
-      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_validations', database_id: VALIDATIONS_DB, date_start: week.start, date_end: week.end}) })
+      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_validations', database_id: VALIDATIONS_DB, date_start: week.start, date_end: week.end}) }),
+      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_validations', database_id: VALIDATIONS_DB, date_start: month.start, date_end: month.end}) }),
+      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_validations', database_id: VALIDATIONS_DB, date_start: year.start, date_end: year.end}) })
     ]);
+
     allSessions = (await r1.json()).sessions || [];
     allSemaines = (await r2.json()).semaines || [];
     allRoutines = (await r3.json()).routines || [];
     allValidations = (await r4.json()).validations || [];
+    allValidationsMonth = (await r5.json()).validations || [];
+    allValidationsYear = (await r6.json()).validations || [];
+
     renderLifetime(); renderSemaines(); renderSousCats(); renderRoutines();
     document.getElementById('loading-lifetime').style.display = 'none';
     document.getElementById('content-lifetime').style.display = 'block';
@@ -268,12 +286,49 @@ function renderSousCats() {
   });
 }
 
+function calcScore(validations, routines, periode) {
+  if (routines.length === 0) return 0;
+  let total = 0, done = 0;
+  routines.forEach(r => {
+    if (!r.objectif) return;
+    let objectifPeriode = r.objectif;
+    if (periode === 'month') {
+      if (r.frequence === 'Hebdomadaire') objectifPeriode = r.objectif * 4;
+      if (r.frequence === 'Mensuel') objectifPeriode = r.objectif;
+      if (r.frequence === 'Quotidien') objectifPeriode = r.objectif * 30;
+    } else if (periode === 'year') {
+      if (r.frequence === 'Hebdomadaire') objectifPeriode = r.objectif * 52;
+      if (r.frequence === 'Mensuel') objectifPeriode = r.objectif * 12;
+      if (r.frequence === 'Quotidien') objectifPeriode = r.objectif * 365;
+    }
+    const count = validations.filter(v => v.routine_id === r.id).length;
+    total += objectifPeriode;
+    done += Math.min(count, objectifPeriode);
+  });
+  return total > 0 ? Math.round(done / total * 100) : 0;
+}
+
 function renderRoutines() {
   const container = document.getElementById('routines-list');
   if (allRoutines.length === 0) {
     container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;padding:20px 0">Aucune routine active. Ajoute des routines dans Notion.</div>';
     return;
   }
+
+  const scoreWeek = calcScore(allValidations, allRoutines, 'week');
+  const scoreMonth = calcScore(allValidationsMonth, allRoutines, 'month');
+  const scoreYear = calcScore(allValidationsYear, allRoutines, 'year');
+
+  const scoreColor = s => s >= 80 ? '#00e5a0' : s >= 50 ? '#fbbf24' : '#f87171';
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px">
+      <div class="kpi"><div class="kpi-label">Cette semaine</div><div class="kpi-value" style="color:${scoreColor(scoreWeek)}">${scoreWeek}%</div></div>
+      <div class="kpi"><div class="kpi-label">Ce mois</div><div class="kpi-value" style="color:${scoreColor(scoreMonth)}">${scoreMonth}%</div></div>
+      <div class="kpi"><div class="kpi-label">Cette année</div><div class="kpi-value" style="color:${scoreColor(scoreYear)}">${scoreYear}%</div></div>
+    </div>
+    <div class="section-label">Détail — semaine en cours</div>
+  `;
 
   // Grouper par catégorie
   const groups = {};
@@ -282,18 +337,13 @@ function renderRoutines() {
     groups[r.categorie].push(r);
   });
 
-  container.innerHTML = '';
   Object.entries(groups).forEach(([cat, routines]) => {
-    const group = document.createElement('div');
-    group.className = 'cat-group';
-    group.innerHTML = `<div class="cat-group-label">${CAT_ICONS[cat] || '◆'} ${cat}</div>`;
-
+    html += `<div class="cat-group"><div class="cat-group-label">${CAT_ICONS[cat] || '◆'} ${cat}</div>`;
     routines.forEach(r => {
       const count = allValidations.filter(v => v.routine_id === r.id).length;
       const objectif = r.objectif || '—';
       const isDone = r.objectif && count >= r.objectif;
-
-      group.innerHTML += `
+      html += `
         <div class="routine-item">
           <div class="routine-info">
             <div class="routine-nom">${r.nom}</div>
@@ -306,9 +356,10 @@ function renderRoutines() {
         </div>
       `;
     });
-
-    container.appendChild(group);
+    html += '</div>';
   });
+
+  container.innerHTML = html;
 }
 
 async function validerRoutine(routineId, nom, btn) {
