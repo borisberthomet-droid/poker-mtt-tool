@@ -86,6 +86,20 @@ tr:hover td { background: var(--green-bg2); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* Routines */
+.routine-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.routine-item:last-child { border-bottom: none; }
+.routine-info { flex: 1; }
+.routine-nom { font-size: 14px; font-weight: 600; color: var(--text); }
+.routine-meta { font-size: 11px; color: var(--text-mid); margin-top: 3px; }
+.routine-count { font-size: 13px; font-weight: 700; color: var(--text-dim); min-width: 40px; text-align: center; }
+.routine-count.done { color: var(--green); }
+.btn-valider { background: var(--green-bg); border: 1px solid rgba(0,229,160,0.3); color: var(--green); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; white-space: nowrap; }
+.btn-valider:hover { background: var(--green); color: #080c0e; }
+.btn-valider:disabled { opacity: 0.4; cursor: not-allowed; }
+.cat-group { margin-bottom: 20px; }
+.cat-group-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
   .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #0d1214; border-top: 1px solid #1e2c32; display: flex; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; position: relative; padding-bottom: 4px; }
   .nav-item::after { content: ""; position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: #00e5a0; border-radius: 0 0 2px 2px; opacity: 0; }
@@ -110,6 +124,7 @@ tr:hover td { background: var(--green-bg2); }
   <div class="tab active" onclick="switchTab('lifetime', this)">Lifetime</div>
   <div class="tab" onclick="switchTab('semaines', this)">Par semaine</div>
   <div class="tab" onclick="switchTab('souscats', this)">Sous-catégories</div>
+  <div class="tab" onclick="switchTab('routines', this)">Routines</div>
 </div>
 
 <div class="tab-content active" id="tab-lifetime">
@@ -133,13 +148,34 @@ tr:hover td { background: var(--green-bg2); }
   <div class="bar-list" id="bar-souscats"></div>
 </div>
 
+<div class="tab-content" id="tab-routines">
+  <div class="section-label">Routines de la semaine</div>
+  <div id="routines-list"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
+</div>
+
 <script>
 const WORKER = 'https://poker-scout-proxy.borisberthomet.workers.dev';
 const SESSIONS_DB = '3a938f0c-b1ca-8184-983b-ec5b89e26311';
 const SEMAINES_DB = '3a938f0c-b1ca-81f6-aa6d-d26f85d9efe2';
+const ROUTINES_DB = '3a938f0c-b1ca-8197-9303-c7d4ba179385';
+const VALIDATIONS_DB = '3b338f0c-b1ca-810b-80a1-f7711147c8c9';
 const CATS = ['Technique Poker', 'Mental', 'Physique', 'Coaching', 'Business'];
 const CAT_ICONS = { 'Technique Poker': '♠', 'Mental': '◈', 'Physique': '◉', 'Coaching': '◆', 'Business': '◇' };
-let allSessions = [], allSemaines = [];
+let allSessions = [], allSemaines = [], allRoutines = [], allValidations = [];
+
+// Dates semaine en cours
+function getWeekBounds() {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (now.getDay() || 7) + 1);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return {
+    start: monday.toISOString().split('T')[0],
+    end: sunday.toISOString().split('T')[0]
+  };
+}
 
 function switchTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -158,13 +194,18 @@ async function loadData() {
   document.getElementById('loading-lifetime').style.display = 'block';
   document.getElementById('content-lifetime').style.display = 'none';
   try {
-    const [r1, r2] = await Promise.all([
+    const week = getWeekBounds();
+    const [r1, r2, r3, r4] = await Promise.all([
       fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_sessions', database_id: SESSIONS_DB}) }),
-      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_semaines', database_id: SEMAINES_DB}) })
+      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_semaines', database_id: SEMAINES_DB}) }),
+      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_routines', database_id: ROUTINES_DB}) }),
+      fetch(WORKER, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({route:'notion_get_validations', database_id: VALIDATIONS_DB, date_start: week.start, date_end: week.end}) })
     ]);
     allSessions = (await r1.json()).sessions || [];
     allSemaines = (await r2.json()).semaines || [];
-    renderLifetime(); renderSemaines(); renderSousCats();
+    allRoutines = (await r3.json()).routines || [];
+    allValidations = (await r4.json()).validations || [];
+    renderLifetime(); renderSemaines(); renderSousCats(); renderRoutines();
     document.getElementById('loading-lifetime').style.display = 'none';
     document.getElementById('content-lifetime').style.display = 'block';
     const now = new Date();
@@ -225,6 +266,79 @@ function renderSousCats() {
   sorted.forEach(([name, min]) => {
     barList.innerHTML += `<div class="bar-item"><div class="bar-label">${name}</div><div class="bar-track"><div class="bar-fill" style="width:${min/maxMin*100}%"></div></div><div class="bar-value">${minToH(min)}</div></div>`;
   });
+}
+
+function renderRoutines() {
+  const container = document.getElementById('routines-list');
+  if (allRoutines.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:13px;padding:20px 0">Aucune routine active. Ajoute des routines dans Notion.</div>';
+    return;
+  }
+
+  // Grouper par catégorie
+  const groups = {};
+  allRoutines.forEach(r => {
+    if (!groups[r.categorie]) groups[r.categorie] = [];
+    groups[r.categorie].push(r);
+  });
+
+  container.innerHTML = '';
+  Object.entries(groups).forEach(([cat, routines]) => {
+    const group = document.createElement('div');
+    group.className = 'cat-group';
+    group.innerHTML = `<div class="cat-group-label">${CAT_ICONS[cat] || '◆'} ${cat}</div>`;
+
+    routines.forEach(r => {
+      const count = allValidations.filter(v => v.routine_id === r.id).length;
+      const objectif = r.objectif || '—';
+      const isDone = r.objectif && count >= r.objectif;
+
+      group.innerHTML += `
+        <div class="routine-item">
+          <div class="routine-info">
+            <div class="routine-nom">${r.nom}</div>
+            <div class="routine-meta">${r.frequence} · Objectif : ${objectif}×</div>
+          </div>
+          <div class="routine-count ${isDone ? 'done' : ''}">${count}/${objectif}</div>
+          <button class="btn-valider" onclick="validerRoutine('${r.id}', '${r.nom}', this)" ${isDone ? 'disabled' : ''}>
+            ${isDone ? '✅' : '+ 1'}
+          </button>
+        </div>
+      `;
+    });
+
+    container.appendChild(group);
+  });
+}
+
+async function validerRoutine(routineId, nom, btn) {
+  btn.disabled = true;
+  btn.textContent = '...';
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    const resp = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        route: 'notion_valider_routine',
+        database_id: VALIDATIONS_DB,
+        routine_id: routineId,
+        nom: nom + ' — ' + today,
+        date: today
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      allValidations.push({ routine_id: routineId, date: today });
+      renderRoutines();
+    } else {
+      btn.disabled = false;
+      btn.textContent = '+ 1';
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '+ 1';
+  }
 }
 
 loadData();
