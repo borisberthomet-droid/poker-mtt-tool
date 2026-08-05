@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Poker MTT">
+<meta name="theme-color" content="#080c0e">
+<title>Poker MTT Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #080c0e;
+  --surface: #0d1214;
+  --border: #1e2c32;
+  --green: #00e5a0;
+  --green-dim: rgba(0,229,160,0.12);
+  --text: #e2edf0;
+  --text-dim: #3d5560;
+  --text-mid: #7a9aa2;
+  --font: 'Inter', -apple-system, sans-serif;
+  --bottom-bar: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: var(--font);
+}
+
+/* Main container */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  height: 100dvh;
+}
+
+/* Frames */
+.frames {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+  background: var(--bg);
+  transition: opacity 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+iframe.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Notion tab — lien externe, pas iframe */
+.notion-placeholder {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: var(--bg);
+}
+
+.notion-placeholder.active { display: flex; }
+
+.notion-logo {
+  width: 56px; height: 56px;
+  background: #fff;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+}
+
+.notion-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.notion-sub {
+  font-size: 13px;
+  color: var(--text-mid);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 240px;
+}
+
+.notion-btn {
+  background: var(--green);
+  color: #080c0e;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Bottom navigation */
+.bottom-nav {
+  height: calc(var(--bottom-bar) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: var(--green);
+  border-radius: 0 0 2px 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.nav-item.active::before { opacity: 1; }
+
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+  filter: grayscale(1) opacity(0.4);
+  transition: filter 0.15s;
+}
+
+.nav-item.active .nav-icon {
+  filter: grayscale(0) opacity(1);
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 0.15s;
+}
+
+.nav-item.active .nav-label { color: var(--green); }
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Install banner */
+.install-banner {
+  position: fixed;
+  top: 16px; left: 16px; right: 16px;
+  background: var(--surface);
+  border: 1px solid var(--green);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+  animation: slideDown 0.3s ease;
+  display: none;
+}
+
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.install-text { flex: 1; font-size: 13px; color: var(--text-mid); line-height: 1.4; }
+.install-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+.install-close { color: var(--text-dim); font-size: 18px; cursor: pointer; padding: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="frames">
+
+    <!-- Journal -->
+    <iframe id="frame-journal" src="journal.html" title="Journal"></iframe>
+
+    <!-- Session -->
+    <iframe id="frame-session" src="session.html" title="Session" loading="lazy"></iframe>
+
+    <!-- Dashboard -->
+    <iframe id="frame-dashboard" src="dashboard.html" title="Dashboard" loading="lazy"></iframe>
+
+    <!-- Notion -->
+    <div id="frame-notion" class="notion-placeholder">
+      <div class="notion-logo">📋</div>
+      <div class="notion-title">Poker MTT Tool</div>
+      <div class="notion-sub">Ouvre ta base de connaissances Notion dans le navigateur</div>
+      <a class="notion-btn" href="https://app.notion.com/p/Poker-MTT-Tool-36338f0cb1ca800091dace6b810f0b3d" target="_blank">Ouvrir Notion →</a>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('journal', this)">
+      <div class="nav-icon">📓</div>
+      <div class="nav-label">Journal</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('session', this)">
+      <div class="nav-icon">⏱️</div>
+      <div class="nav-label">Session</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('dashboard', this)">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Dashboard</div>
+    </div>
+    <div class="nav-item" onclick="switchTab('notion', this)">
+      <div class="nav-icon">🗄️</div>
+      <div class="nav-label">Notion</div>
+    </div>
+  </nav>
+</div>
+
+<!-- Install banner iOS -->
+<div class="install-banner" id="install-banner">
+  <div class="install-text">
+    <strong>Installer l'app</strong>
+    Appuie sur <strong>Partager</strong> puis <strong>"Sur l'écran d'accueil"</strong>
+  </div>
+  <div class="install-close" onclick="dismissBanner()">×</div>
+</div>
+
+<script>
+const tabs = ['journal', 'session', 'dashboard', 'notion'];
+let currentTab = 'journal';
+let loaded = { journal: false, session: false, dashboard: false, notion: true };
+
+function switchTab(name, el) {
+  if (currentTab === name) return;
+  currentTab = name;
+
+  // Nav items
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+
+  // Frames
+  tabs.forEach(t => {
+    const frame = document.getElementById('frame-' + t);
+    if (frame) frame.classList.remove('active');
+  });
+
+  const target = document.getElementById('frame-' + name);
+  if (target) target.classList.add('active');
+
+  // Loading
+  if (!loaded[name] && name !== 'notion') {
+    document.getElementById('loading').classList.remove('hidden');
+    const iframe = document.getElementById('frame-' + name);
+    iframe.onload = () => {
+      loaded[name] = true;
+      document.getElementById('loading').classList.add('hidden');
+    };
+  }
+}
+
+// Init — hide loading when journal loads
+document.getElementById('frame-journal').classList.add('active');
+document.getElementById('frame-journal').onload = () => {
+  loaded.journal = true;
+  document.getElementById('loading').classList.add('hidden');
+};
+
+// iOS install banner
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.navigator.standalone;
+const dismissed = localStorage.getItem('install-dismissed');
+
+if (isIOS && !isStandalone && !dismissed) {
+  setTimeout(() => {
+    const banner = document.getElementById('install-banner');
+    banner.style.display = 'flex';
+  }, 2000);
+}
+
+function dismissBanner() {
+  document.getElementById('install-banner').style.display = 'none';
+  localStorage.setItem('install-dismissed', '1');
+}
+</script>
+</body>
+</html>
