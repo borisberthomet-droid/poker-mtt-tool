@@ -4,52 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculateur Deal Making ICM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px;color:#fff}
-.container{max-width:700px;margin:0 auto}
-h1{font-size:18px;font-weight:500;margin-bottom:6px;color:#fff}
-.subtitle{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:20px}
-.info-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-left:3px solid #534AB7;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6}
-.info-box strong{color:#AFA9EC}
-.grid-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.input-group{display:flex;flex-direction:column;gap:6px}
-label{font-size:12px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.04em}
-input[type=number]{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none;width:100%;-moz-appearance:textfield}
-input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
-input[type=number]:focus{border-color:rgba(255,255,255,0.3)}
-.section-title{font-size:11px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
-.prizes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px}
-.prize-input-wrap{display:flex;flex-direction:column;gap:4px}
-.prize-label{font-size:11px;color:rgba(255,255,255,0.3)}
-.table-wrapper{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-bottom:20px}
-.table-header{display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1.5fr 1fr;padding:10px 14px;background:rgba(255,255,255,0.06);font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.04em;gap:8px}
-.table-row{display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1.5fr 1fr;padding:10px 14px;border-top:1px solid rgba(255,255,255,0.05);gap:8px;align-items:center}
-.table-row:hover{background:rgba(255,255,255,0.03)}
-.row-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;color:#fff;font-size:13px;outline:none;width:100%;-moz-appearance:textfield}
-.row-input::-webkit-outer-spin-button,.row-input::-webkit-inner-spin-button{-webkit-appearance:none}
-.row-input:focus{border-color:rgba(255,255,255,0.25)}
-.icm-value{font-size:14px;font-weight:500;color:#AFA9EC}
-.icm-value.zero{color:rgba(255,255,255,0.2)}
-.chip-pct{font-size:13px;color:rgba(255,255,255,0.4)}
-.add-btn{background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.15);border-radius:8px;padding:8px;color:rgba(255,255,255,0.3);font-size:13px;cursor:pointer;width:100%;margin-bottom:20px}
-.add-btn:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)}
-.calc-btn{background:#534AB7;border:none;border-radius:8px;padding:12px;color:#fff;font-size:14px;font-weight:500;cursor:pointer;width:100%;margin-bottom:20px}
-.calc-btn:hover{background:#3C3489}
-.result-section{background:rgba(83,74,183,0.1);border:1px solid rgba(83,74,183,0.3);border-radius:10px;padding:16px;margin-bottom:20px;display:none}
-.result-section.show{display:block}
-.result-title{font-size:13px;font-weight:500;color:#AFA9EC;margin-bottom:12px}
-.deal-grid{display:grid;gap:8px}
-.deal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:6px}
-.deal-name{font-size:13px;color:rgba(255,255,255,0.6)}
-.deal-amount{font-size:15px;font-weight:500;color:#FAC775}
-.deal-chips{font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px}
-.warning{font-size:12px;color:#EF9F27;margin-top:10px;padding:8px 12px;background:rgba(239,159,39,0.1);border-radius:6px;border-left:2px solid #EF9F27}
+  body { padding-bottom: 40px; }
+  main { padding: 0 24px; max-width: 700px; margin: 0 auto; }
+  .subtitle { font-size: 12.5px; color: var(--text-dim); margin-bottom: 20px; }
+  .info-box { background: var(--panel-2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 12px 14px; margin-bottom: 22px; font-size: 12px; color: var(--text-mid); line-height: 1.6; }
+  .info-box strong { color: var(--accent); }
+  .grid-top { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+  .input-group label { font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .prizes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-bottom: 22px; }
+  .prize-input-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .prize-label { font-size: 10.5px; color: var(--text-dim); }
+  .prize-input { padding: 9px 10px; font-size: 13px; }
+  .table-wrap { margin-bottom: 20px; }
+  .table-header { display: grid; grid-template-columns: 1.5fr 1.5fr 1.5fr 1.5fr 1fr; padding: 10px 14px; background: var(--panel-3); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; gap: 8px; border-bottom: 1px solid var(--border); }
+  .table-row { display: grid; grid-template-columns: 1.5fr 1.5fr 1.5fr 1.5fr 1fr; padding: 10px 14px; border-bottom: 1px solid var(--border); gap: 8px; align-items: center; }
+  .table-row:hover { background: rgba(52,211,153,0.04); }
+  .row-input { padding: 7px 9px; font-size: 13px; -moz-appearance: textfield; }
+  .row-input::-webkit-outer-spin-button, .row-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .icm-value { font-size: 13.5px; font-weight: 700; color: var(--yellow); font-family: var(--font-mono); }
+  .icm-value.zero { color: var(--text-dim); font-weight: 500; }
+  .chip-pct { font-size: 12.5px; color: var(--text-mid); font-family: var(--font-mono); }
+  .row-remove { cursor: pointer; color: var(--text-dim); font-size: 17px; text-align: center; }
+  .row-remove:hover { color: var(--red); }
+  .add-btn { background: var(--panel-2); border: 1px dashed var(--border-2); border-radius: 10px; padding: 10px; color: var(--text-dim); font-size: 13px; cursor: pointer; width: 100%; margin-bottom: 20px; font-family: var(--font); transition: all 0.15s; }
+  .add-btn:hover { background: var(--panel-3); color: var(--text-mid); }
+  .result-section { background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.25); border-radius: 14px; padding: 18px; margin-bottom: 20px; display: none; }
+  .result-section.show { display: block; }
+  .result-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+  .deal-grid { display: flex; flex-direction: column; gap: 8px; }
+  .deal-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--panel-2); border-radius: 10px; }
+  .deal-name { font-size: 13px; color: var(--text); font-weight: 600; }
+  .deal-amount { font-size: 15px; font-weight: 700; color: var(--yellow); font-family: var(--font-mono); }
+  .deal-chips { font-size: 11px; color: var(--text-dim); margin-top: 2px; font-family: var(--font-mono); }
+  .warning { font-size: 12px; color: var(--yellow); margin-top: 12px; padding: 10px 12px; background: rgba(251,191,36,0.08); border-radius: 8px; border-left: 2px solid var(--yellow); }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Calculateur Deal Making ICM</h1>
+
+<div class="pmt-header">
+  <div class="pmt-logo">
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none" role="img" aria-hidden="true">
+      <defs><linearGradient id="pmt-logo-grad-cdm" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4ADE80" /><stop offset="1" stop-color="#059669" /></linearGradient></defs>
+      <circle cx="16" cy="16" r="14.5" stroke="url(#pmt-logo-grad-cdm)" stroke-width="2" fill="#151917" />
+      <path d="M16 7.5C11.5 13 7 17 7 20.5C7 23.2 9.2 25 11.7 25C13.2 25 14.5 24.2 15.2 23C15 24.8 13.7 26.1 12 26.9H20C18.3 26.1 17 24.8 16.8 23C17.5 24.2 18.8 25 20.3 25C22.8 25 25 23.2 25 20.5C25 17 20.5 13 16 7.5Z" fill="url(#pmt-logo-grad-cdm)" />
+    </svg>
+    <div class="pmt-header-title">Deal Making ICM</div>
+  </div>
+  <a href="app.html" class="btn-ghost">← Accueil</a>
+</div>
+
+<main>
   <p class="subtitle">Calcule le chop ICM équitable selon les stacks et la structure de prix</p>
 
   <div class="info-box">
@@ -67,11 +78,11 @@ input[type=number]:focus{border-color:rgba(255,255,255,0.3)}
     </div>
   </div>
 
-  <div class="section-title">Structure des prix (places payées)</div>
+  <div class="section-label">Structure des prix (places payées)</div>
   <div class="prizes-grid" id="prizesGrid"></div>
 
-  <div class="section-title">Stacks des joueurs</div>
-  <div class="table-wrapper">
+  <div class="section-label">Stacks des joueurs</div>
+  <div class="table-wrap">
     <div class="table-header">
       <span>Joueur</span>
       <span>Stack</span>
@@ -83,14 +94,14 @@ input[type=number]:focus{border-color:rgba(255,255,255,0.3)}
   </div>
 
   <button class="add-btn" onclick="addPlayerRow()">+ Ajouter un joueur</button>
-  <button class="calc-btn" onclick="calculateICM()">Calculer le deal ICM</button>
+  <button class="btn-submit" onclick="calculateICM()">Calculer le deal ICM</button>
 
   <div class="result-section" id="results">
     <div class="result-title">Deal ICM recommandé</div>
     <div class="deal-grid" id="dealGrid"></div>
     <div class="warning" id="warningMsg" style="display:none"></div>
   </div>
-</div>
+</main>
 
 <script>
 const defaultPrizes = [4000, 2500, 2000, 1500];
@@ -108,7 +119,7 @@ function buildPrizesGrid() {
     const pct = i===0?0.4:i===1?0.25:i===2?0.2:0.15;
     const val = defaultPrizes[i] || Math.round(total * pct / 100) * 100;
     wrap.innerHTML = `<div class="prize-label">${i+1}${i===0?'er':'ème'} place</div>
-      <input type="number" class="prize-input" value="${val}" oninput="calculateICM()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:7px 10px;color:#fff;font-size:13px;outline:none;width:100%;-moz-appearance:textfield">`;
+      <input type="number" class="prize-input" value="${val}" oninput="calculateICM()">`;
     grid.appendChild(wrap);
   }
 }
@@ -132,7 +143,7 @@ function addPlayerRow(idx) {
     <input type="number" class="row-input" value="${stack}" placeholder="Stack" oninput="updateChipPcts()">
     <span class="chip-pct" data-pct>—</span>
     <span class="icm-value zero" data-icm>—</span>
-    <span style="cursor:pointer;color:rgba(255,255,255,0.2);font-size:16px" onclick="this.parentElement.remove();updateChipPcts()">×</span>
+    <span class="row-remove" onclick="this.parentElement.remove();updateChipPcts()">×</span>
   `;
   rows.appendChild(div);
   updateChipPcts();

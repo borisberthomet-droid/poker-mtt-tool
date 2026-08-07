@@ -4,125 +4,136 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Squeeze 40bb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0f0f1a;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:16px;color:#fff}
-.container{max-width:680px;margin:0 auto}
-h1{font-size:16px;font-weight:500;margin-bottom:4px}
-.subtitle{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:12px}
-.notes-label{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.notes-area{width:100%;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-left:2px solid #EF9F27;border-radius:8px;padding:10px 12px;color:rgba(255,255,255,0.6);font-size:12px;line-height:1.6;resize:none;font-family:inherit;outline:none;min-height:60px;margin-bottom:14px}
-.tabs-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
-.lbl{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;white-space:nowrap;min-width:60px}
-.tab{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);background:transparent;transition:all .15s}
-.tab.active{background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.3)}
-.sub .tab.active{background:#534AB7;color:#EEEDFE;border-color:transparent}
-.pko .tab.active{background:#1D9E75;color:#E1F5EE;border-color:transparent}
-.ctx .tab.t1.active{background:#EF9F27;color:#1a1a1a;border-color:transparent}
-.ctx .tab.t2.active{background:#378ADD;color:#E6F1FB;border-color:transparent}
-.ctx .tab.t3.active{background:#1D9E75;color:#E1F5EE;border-color:transparent}
-.ctx .tab.t4.active{background:#D85A30;color:#FAECE7;border-color:transparent}
-.action-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.action-btn{border-radius:10px;padding:8px 6px;cursor:pointer;border:2px solid transparent;transition:all .15s;text-align:center;user-select:none}
-.action-btn.sel{border-color:rgba(255,255,255,0.8)!important}
-.action-btn .aname{font-size:12px;font-weight:600;margin-bottom:6px}
-.freq-row{display:flex;gap:4px;justify-content:center}
-.freq-btn{font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff}
-.freq-btn.active{background:rgba(255,255,255,0.9);color:#000}
-.hint{font-size:10px;color:rgba(255,255,255,0.2);margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px}
-.cell{aspect-ratio:1;border-radius:3px;cursor:pointer;user-select:none;position:relative;overflow:hidden;background:#1e1e2e;display:flex;align-items:center;justify-content:center}
-.cell .seg{position:absolute;top:0;height:100%}
-.cell .ctext{position:relative;z-index:3;font-size:9px;font-weight:500;pointer-events:none;text-shadow:0 0 4px rgba(0,0,0,0.9);color:rgba(255,255,255,0.2)}
-.cell.hasaction .ctext{color:#fff}
-.cell:hover{opacity:.8}
-.stats{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.stat{background:rgba(255,255,255,0.05);border-radius:8px;padding:8px 10px;flex:1;min-width:60px}
-.stat-label{font-size:10px;margin-bottom:3px}
-.stat-val{font-size:14px;font-weight:500}
-.actions{display:flex;gap:8px;margin-top:10px}
-.btn{padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5)}
-.btn:hover{background:rgba(255,255,255,0.08);color:#fff}
-.btn.danger{border-color:rgba(220,80,80,0.4);color:rgba(220,80,80,0.6)}
-.saved{font-size:11px;color:#1D9E75;margin-top:8px;opacity:0;transition:opacity .3s}
-.saved.show{opacity:1}
+  body { padding-bottom: 40px; }
+  main { padding: 16px 20px 0; max-width: 680px; margin: 0 auto; }
+  .subtitle { font-size: 11.5px; color: var(--text-dim); margin-bottom: 14px; }
+  .notes-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .notes-area { width: 100%; background: var(--panel-2); border: 1px solid var(--border); border-left: 2px solid var(--yellow); border-radius: 10px; padding: 10px 12px; color: var(--text-mid); font-size: 12px; line-height: 1.6; resize: none; font-family: var(--font); outline: none; min-height: 60px; margin-bottom: 16px; }
+  .notes-area:focus { border-color: var(--yellow); }
+  .tabs-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+  .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; white-space: nowrap; min-width: 58px; }
+  .g-tab { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); color: var(--text-mid); background: var(--panel-2); transition: all 0.15s; }
+  .g-tab.active { background: var(--panel-3); color: var(--text); border-color: var(--border-2); }
+  .sub .g-tab.active { background: #818cf8; color: #0e0f2e; border-color: transparent; font-weight: 600; }
+  .pko .g-tab.active { background: var(--accent-gradient); color: var(--accent-on); border-color: transparent; font-weight: 600; }
+  .ctx .g-tab.t1.active { background: var(--yellow); color: #1a1a1a; border-color: transparent; font-weight: 600; }
+  .ctx .g-tab.t2.active { background: #3987e5; color: #071022; border-color: transparent; font-weight: 600; }
+  .ctx .g-tab.t3.active { background: var(--accent-gradient); color: var(--accent-on); border-color: transparent; font-weight: 600; }
+  .ctx .g-tab.t4.active { background: #d95926; color: #1c0d04; border-color: transparent; font-weight: 600; }
+  .action-panel { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+  .action-btn { border-radius: 12px; padding: 8px 6px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; text-align: center; user-select: none; }
+  .action-btn.sel { border-color: rgba(255,255,255,0.7) !important; }
+  .action-btn .aname { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .freq-row { display: flex; gap: 4px; justify-content: center; }
+  .freq-btn { font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; }
+  .freq-btn.active { background: rgba(255,255,255,0.92); color: #000; }
+  .hint { font-size: 10px; color: var(--text-dim); margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(13,1fr); gap: 2px; }
+  .cell { aspect-ratio: 1; border-radius: 4px; cursor: pointer; user-select: none; position: relative; overflow: hidden; background: var(--panel-2); display: flex; align-items: center; justify-content: center; }
+  .cell .seg { position: absolute; top: 0; height: 100%; }
+  .cell .ctext { position: relative; z-index: 3; font-size: 9px; font-weight: 600; pointer-events: none; text-shadow: 0 0 4px rgba(0,0,0,0.9); color: var(--text-dim); font-family: var(--font-mono); }
+  .cell.hasaction .ctext { color: #fff; }
+  .cell:hover { opacity: 0.82; }
+  .stats { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; flex: 1; min-width: 64px; }
+  .stat-label { font-size: 9.5px; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .stat-val { font-size: 14px; font-weight: 700; font-family: var(--font-mono); }
+  .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .saved { font-size: 11px; color: var(--accent); margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
+  .saved.show { opacity: 1; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Squeeze &mdash; 40bb</h1>
-  <p class="subtitle">Selectionne une action + frequence, puis clique sur les cases &middot; Clic droit = reset</p>
 
-  <div class="notes-label">Notes theoriques</div>
+<div class="pmt-header">
+  <div class="pmt-logo">
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none" role="img" aria-hidden="true">
+      <defs><linearGradient id="pmt-logo-grad-sq40" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4ADE80" /><stop offset="1" stop-color="#059669" /></linearGradient></defs>
+      <circle cx="16" cy="16" r="14.5" stroke="url(#pmt-logo-grad-sq40)" stroke-width="2" fill="#151917" />
+      <path d="M16 7.5C11.5 13 7 17 7 20.5C7 23.2 9.2 25 11.7 25C13.2 25 14.5 24.2 15.2 23C15 24.8 13.7 26.1 12 26.9H20C18.3 26.1 17 24.8 16.8 23C17.5 24.2 18.8 25 20.3 25C22.8 25 25 23.2 25 20.5C25 17 20.5 13 16 7.5Z" fill="url(#pmt-logo-grad-sq40)" />
+    </svg>
+    <div class="pmt-header-title">Squeeze — 40bb</div>
+  </div>
+  <a href="app.html" class="btn-ghost">← Accueil</a>
+</div>
+
+<main>
+  <p class="subtitle">Sélectionne une action + fréquence, puis clique sur les cases · Clic droit = reset</p>
+
+  <div class="notes-label">Notes théoriques</div>
   <textarea class="notes-area" id="notesEl" placeholder="Principes generaux du squeeze a 40bb..."></textarea>
 
   <div class="tabs-row" id="pos-tabs">
     <span class="lbl">Position</span>
-    <div class="tab active" data-key="pos" data-val="CO">CO</div>
-    <div class="tab" data-key="pos" data-val="BTN">BTN</div>
-    <div class="tab" data-key="pos" data-val="SB">SB</div>
-    <div class="tab" data-key="pos" data-val="BB">BB</div>
+    <div class="g-tab active" data-key="pos" data-val="CO">CO</div>
+    <div class="g-tab" data-key="pos" data-val="BTN">BTN</div>
+    <div class="g-tab" data-key="pos" data-val="SB">SB</div>
+    <div class="g-tab" data-key="pos" data-val="BB">BB</div>
   </div>
 
   <div class="tabs-row" id="opener-tabs">
     <span class="lbl">Vs opener</span>
-    <div class="tab active" data-key="opener" data-val="UTG">vs UTG</div>
-    <div class="tab" data-key="opener" data-val="LJ">vs LJ</div>
-    <div class="tab" data-key="opener" data-val="CO">vs CO</div>
-    <div class="tab" data-key="opener" data-val="BTN">vs BTN</div>
-    <div class="tab" data-key="opener" data-val="SB">vs SB</div>
+    <div class="g-tab active" data-key="opener" data-val="UTG">vs UTG</div>
+    <div class="g-tab" data-key="opener" data-val="LJ">vs LJ</div>
+    <div class="g-tab" data-key="opener" data-val="CO">vs CO</div>
+    <div class="g-tab" data-key="opener" data-val="BTN">vs BTN</div>
+    <div class="g-tab" data-key="opener" data-val="SB">vs SB</div>
   </div>
 
   <div class="tabs-row" id="caller-tabs">
     <span class="lbl">Caller</span>
-    <div class="tab active" data-key="caller" data-val="CO">CO</div>
-    <div class="tab" data-key="caller" data-val="BTN">BTN</div>
-    <div class="tab" data-key="caller" data-val="SB">SB</div>
-    <div class="tab" data-key="caller" data-val="BB">BB</div>
+    <div class="g-tab active" data-key="caller" data-val="CO">CO</div>
+    <div class="g-tab" data-key="caller" data-val="BTN">BTN</div>
+    <div class="g-tab" data-key="caller" data-val="SB">SB</div>
+    <div class="g-tab" data-key="caller" data-val="BB">BB</div>
   </div>
 
   <div class="tabs-row sub" id="fl-tabs">
     <span class="lbl">%FL</span>
-    <div class="tab active" data-key="fl" data-val="100">100% FL</div>
-    <div class="tab" data-key="fl" data-val="50">50% FL</div>
-    <div class="tab" data-key="fl" data-val="25">25% FL</div>
-    <div class="tab" data-key="fl" data-val="Bulle">Bulle</div>
-    <div class="tab" data-key="fl" data-val="10">10% FL</div>
-    <div class="tab" data-key="fl" data-val="FT">FT</div>
+    <div class="g-tab active" data-key="fl" data-val="100">100% FL</div>
+    <div class="g-tab" data-key="fl" data-val="50">50% FL</div>
+    <div class="g-tab" data-key="fl" data-val="25">25% FL</div>
+    <div class="g-tab" data-key="fl" data-val="Bulle">Bulle</div>
+    <div class="g-tab" data-key="fl" data-val="10">10% FL</div>
+    <div class="g-tab" data-key="fl" data-val="FT">FT</div>
   </div>
 
   <div class="tabs-row pko" id="pko-tabs">
     <span class="lbl">PKO</span>
-    <div class="tab active" data-key="pko" data-val="Van">Vanilla</div>
-    <div class="tab" data-key="pko" data-val="CouvertBP05">Couvert BP 0.5</div>
-    <div class="tab" data-key="pko" data-val="CouvertBP1">Couvert BP 1</div>
-    <div class="tab" data-key="pko" data-val="CouvertBP2">Couvert BP 2</div>
-    <div class="tab" data-key="pko" data-val="CouvertBP4">Couvert BP 4</div>
-    <div class="tab" data-key="pko" data-val="CouvertBP10">Couvert BP 10</div>
-    <div class="tab" data-key="pko" data-val="CouvrantBP05">Couvrant BP 0.5</div>
-    <div class="tab" data-key="pko" data-val="CouvrantBP1">Couvrant BP 1</div>
-    <div class="tab" data-key="pko" data-val="CouvrantBP2">Couvrant BP 2</div>
-    <div class="tab" data-key="pko" data-val="CouvrantBP4">Couvrant BP 4</div>
-    <div class="tab" data-key="pko" data-val="CouvrantBP10">Couvrant BP 10</div>
+    <div class="g-tab active" data-key="pko" data-val="Van">Vanilla</div>
+    <div class="g-tab" data-key="pko" data-val="CouvertBP05">Couvert BP 0.5</div>
+    <div class="g-tab" data-key="pko" data-val="CouvertBP1">Couvert BP 1</div>
+    <div class="g-tab" data-key="pko" data-val="CouvertBP2">Couvert BP 2</div>
+    <div class="g-tab" data-key="pko" data-val="CouvertBP4">Couvert BP 4</div>
+    <div class="g-tab" data-key="pko" data-val="CouvertBP10">Couvert BP 10</div>
+    <div class="g-tab" data-key="pko" data-val="CouvrantBP05">Couvrant BP 0.5</div>
+    <div class="g-tab" data-key="pko" data-val="CouvrantBP1">Couvrant BP 1</div>
+    <div class="g-tab" data-key="pko" data-val="CouvrantBP2">Couvrant BP 2</div>
+    <div class="g-tab" data-key="pko" data-val="CouvrantBP4">Couvrant BP 4</div>
+    <div class="g-tab" data-key="pko" data-val="CouvrantBP10">Couvrant BP 10</div>
   </div>
 
   <div class="tabs-row ctx" id="profile-tabs">
     <span class="lbl">Contexte</span>
-    <div class="tab t1 active" data-key="profile" data-val="Th">Theorie</div>
-    <div class="tab t2" data-key="profile" data-val="Ti">vs Reg Tight</div>
-    <div class="tab t3" data-key="profile" data-val="Av">vs Avg Reg</div>
-    <div class="tab t4" data-key="profile" data-val="Ag">vs Reg Aggro</div>
+    <div class="g-tab t1 active" data-key="profile" data-val="Th">Theorie</div>
+    <div class="g-tab t2" data-key="profile" data-val="Ti">vs Reg Tight</div>
+    <div class="g-tab t3" data-key="profile" data-val="Av">vs Avg Reg</div>
+    <div class="g-tab t4" data-key="profile" data-val="Ag">vs Reg Aggro</div>
   </div>
 
   <div class="action-panel" id="action-panel">
-    <div class="action-btn sel" data-action="squeeze" style="background:#4a1a1a">
+    <div class="action-btn sel" data-action="squeeze" style="background:#3a1414">
       <div class="aname" style="color:#F7C1C1">Squeeze</div>
       <div class="freq-row">
         <div class="freq-btn active" data-freq="100">100%</div>
         <div class="freq-btn" data-freq="50">50%</div>
       </div>
     </div>
-    <div class="action-btn" data-action="call" style="background:#0a2a1a">
+    <div class="action-btn" data-action="call" style="background:#0a2318">
       <div class="aname" style="color:#9FE1CB">Call</div>
       <div class="freq-row">
         <div class="freq-btn active" data-freq="100">100%</div>
@@ -136,23 +147,23 @@ h1{font-size:16px;font-weight:500;margin-bottom:4px}
         <div class="freq-btn" data-freq="50">50%</div>
       </div>
     </div>
-    <div class="action-btn" data-action="fold" style="background:#1a1a2a">
-      <div class="aname" style="color:rgba(255,255,255,0.5)">Fold</div>
+    <div class="action-btn" data-action="fold" style="background:var(--panel-2)">
+      <div class="aname" style="color:var(--text-dim)">Fold</div>
       <div class="freq-row">
         <div class="freq-btn active" data-freq="100">100%</div>
       </div>
     </div>
   </div>
 
-  <div class="hint">Clic gauche = appliquer &middot; Clic droit = reset case</div>
+  <div class="hint">Clic gauche = appliquer · Clic droit = reset case</div>
 
   <div class="grid" id="grid"></div>
   <div class="stats" id="stats"></div>
   <div class="actions">
-    <button class="btn danger" onclick="resetAll()">Reset tout</button>
+    <button class="btn-secondary" style="color:var(--red);border-color:rgba(248,113,113,0.3)" onclick="resetAll()">Reset tout</button>
   </div>
-  <div class="saved" id="savedEl">Sauvegarde</div>
-</div>
+  <div class="saved" id="savedEl">Sauvegardé</div>
+</main>
 
 <script>
 var DEPTH = '40bb';
@@ -256,10 +267,10 @@ function updateStats(){
   var total=counts.squeeze+counts.call+counts.flat;
   var pct=(total/1326*100).toFixed(1);
   document.getElementById('stats').innerHTML=
-    '<div class=stat><div class=stat-label style="color:#F7C1C1">Squeeze</div><div class=stat-val style="color:#7B2D2D">'+counts.squeeze.toFixed(1)+'</div></div>'+
-    '<div class=stat><div class=stat-label style="color:#1D9E75">Call</div><div class=stat-val style="color:#9FE1CB">'+counts.call.toFixed(1)+'</div></div>'+
-    '<div class=stat><div class=stat-label style="color:#CECBF6">Flat</div><div class=stat-val style="color:#534AB7">'+counts.flat.toFixed(1)+'</div></div>'+
-    '<div class=stat><div class=stat-label>% deck</div><div class=stat-val>'+pct+'%</div></div>';
+    '<div class=stat><div class=stat-label style="color:#E88B8B">Squeeze</div><div class=stat-val style="color:#F7C1C1">'+counts.squeeze.toFixed(1)+'</div></div>'+
+    '<div class=stat><div class=stat-label style="color:var(--accent)">Call</div><div class=stat-val style="color:#9FE1CB">'+counts.call.toFixed(1)+'</div></div>'+
+    '<div class=stat><div class=stat-label style="color:#CECBF6">Flat</div><div class=stat-val style="color:#A5B4FC">'+counts.flat.toFixed(1)+'</div></div>'+
+    '<div class=stat><div class=stat-label style="color:var(--text-dim)">% deck</div><div class=stat-val style="color:var(--text)">'+pct+'%</div></div>';
 }
 
 document.querySelectorAll('.action-btn').forEach(function(btn){
@@ -286,10 +297,10 @@ document.querySelectorAll('.freq-btn').forEach(function(fb){
   });
 });
 
-document.querySelectorAll('.tab[data-key]').forEach(function(tab){
+document.querySelectorAll('.g-tab[data-key]').forEach(function(tab){
   tab.addEventListener('click',function(){
     var key=tab.dataset.key;
-    document.querySelectorAll('#'+key+'-tabs .tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('#'+key+'-tabs .g-tab').forEach(function(t){t.classList.remove('active');});
     tab.classList.add('active');
     cur[key]=tab.dataset.val;
     buildGrid();
