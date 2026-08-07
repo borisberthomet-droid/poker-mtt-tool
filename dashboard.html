@@ -4,120 +4,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #080c0e;
-  --surface: #0d1214;
-  --surface2: #121a1d;
-  --surface3: #172025;
-  --border: #1e2c32;
-  --border2: #243540;
-  --green: #00e5a0;
-  --green-dim: #00b87e;
-  --green-bg: rgba(0,229,160,0.08);
-  --green-bg2: rgba(0,229,160,0.04);
-  --text: #e2edf0;
-  --text-mid: #7a9aA2;
-  --text-dim: #3d5560;
-  --font: 'Inter', -apple-system, sans-serif;
-}
-body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; padding-bottom: 100px; }
+  body { padding-bottom: 100px; }
 
-/* Header */
-.header { padding: 24px 28px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.header-left h1 { font-size: 15px; font-weight: 700; letter-spacing: 0.5px; color: var(--text); text-transform: uppercase; }
-.header-left .sub { font-size: 12px; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.3px; }
-.refresh-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text-mid); border-radius: 6px; padding: 7px 14px; font-size: 12px; font-family: var(--font); cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; }
-.refresh-btn:hover { border-color: var(--green); color: var(--green); }
+  .pmt-header-title { font-size: 16px; }
 
-/* Tabs */
-.tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 28px; gap: 4px; }
-.tab { padding: 11px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
-.tab:hover { color: var(--text-mid); }
-.tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .content { padding: 24px 24px 0; }
 
-.tab-content { display: none; padding: 28px; }
-.tab-content.active { display: block; }
+  .tabs { padding: 0 24px; }
+  .tab-panel { padding: 24px; }
 
-/* KPI row */
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 28px; }
-.kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; position: relative; overflow: hidden; }
-.kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--green); opacity: 0.4; }
-.kpi.main::before { opacity: 1; }
-.kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
-.kpi-value { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; line-height: 1; }
-.kpi.main .kpi-value { color: var(--green); }
-.kpi-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  /* Donut chart */
+  .donut-wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .donut-svg { flex-shrink: 0; }
+  .donut-total-value { font-family: var(--font-mono); font-size: 20px; font-weight: 700; fill: var(--text); }
+  .donut-total-label { font-size: 9px; fill: var(--text-dim); letter-spacing: 0.6px; text-transform: uppercase; }
 
-/* Section label */
-.section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  /* Bar chart (weekly hours) */
+  .barchart-wrap { width: 100%; }
+  .barchart-svg { width: 100%; height: auto; display: block; }
+  .barchart-bar { fill: var(--accent); transition: opacity 0.15s; }
+  .barchart-bar:hover { opacity: 0.75; }
+  .barchart-axis-label { font-size: 7.5px; fill: var(--text-dim); font-family: var(--font); }
+  .barchart-value-label { font-size: 8px; fill: var(--text); font-weight: 600; font-family: var(--font-mono); }
+  .barchart-baseline { stroke: var(--border-2); stroke-width: 1; }
 
-/* Bar list */
-.bar-list { display: flex; flex-direction: column; gap: 8px; }
-.bar-item { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
-.bar-label { font-size: 12px; font-weight: 500; min-width: 170px; color: var(--text-mid); flex-shrink: 0; }
-.bar-track { flex: 1; background: var(--surface3); border-radius: 2px; height: 4px; overflow: hidden; }
-.bar-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
-.bar-value { font-size: 12px; font-weight: 600; color: var(--text); min-width: 55px; text-align: right; font-variant-numeric: tabular-nums; }
-
-/* Table */
-.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
-table { border-collapse: collapse; width: 100%; font-size: 12px; table-layout: fixed; }
-thead { background: var(--surface3); }
-th { color: var(--text-dim); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 11px 14px; text-align: center; border-bottom: 1px solid var(--border); }
-th:first-child { text-align: left; width: 175px; }
-th:last-child { width: 70px; }
-td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: center; color: var(--text-mid); font-variant-numeric: tabular-nums; }
-td:first-child { text-align: left; color: var(--text); font-size: 11px; }
-tr:last-child td { border-bottom: none; }
-td.has-data { color: var(--text); font-weight: 600; }
-td.total-col { color: var(--green); font-weight: 700; }
-td.zero { color: var(--text-dim); }
-tr:hover td { background: var(--green-bg2); }
-.total-row { background: var(--surface3); }
-.total-row td { border-top: 1px solid var(--border2); font-weight: 700; color: var(--text); }
-.total-row td.total-col { color: var(--green); }
-
-/* Loading */
-.loading { text-align: center; padding: 60px; color: var(--text-dim); font-size: 13px; }
-.spinner { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 14px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.divider { height: 1px; background: var(--border); margin: 24px 0; }
-
-/* Routines */
-.routine-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-.routine-item:last-child { border-bottom: none; }
-.routine-info { flex: 1; }
-.routine-nom { font-size: 14px; font-weight: 600; color: var(--text); }
-.routine-meta { font-size: 11px; color: var(--text-mid); margin-top: 3px; }
-.routine-count { font-size: 13px; font-weight: 700; color: var(--text-dim); min-width: 40px; text-align: center; }
-.routine-count.done { color: var(--green); }
-.btn-valider { background: var(--green-bg); border: 1px solid rgba(0,229,160,0.3); color: var(--green); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; white-space: nowrap; }
-.btn-valider:hover { background: var(--green); color: #080c0e; }
-.btn-valider:disabled { opacity: 0.4; cursor: not-allowed; }
-.cat-group { margin-bottom: 20px; }
-.cat-group-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #0d1214; border-top: 1px solid #1e2c32; display: flex; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; position: relative; padding-bottom: 4px; }
-  .nav-item::after { content: ""; position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: #00e5a0; border-radius: 0 0 2px 2px; opacity: 0; }
-  .nav-item.active::after { opacity: 1; }
-  .nav-icon { font-size: 19px; opacity: 0.35; }
-  .nav-item.active .nav-icon { opacity: 1; }
-  .nav-label { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #3d5560; }
-  .nav-item.active .nav-label { color: #00e5a0; }
+  .routine-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .routine-item:last-child { border-bottom: none; }
+  .routine-info { flex: 1; }
+  .routine-nom { font-size: 14px; font-weight: 600; color: var(--text); }
+  .routine-meta { font-size: 11px; color: var(--text-mid); margin-top: 3px; }
+  .routine-count { font-size: 13px; font-weight: 700; color: var(--text-dim); min-width: 40px; text-align: center; font-family: var(--font-mono); }
+  .routine-count.done { color: var(--accent); }
+  .btn-valider { background: rgba(52,211,153,0.10); border: 1px solid rgba(52,211,153,0.3); color: var(--accent); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: all 0.15s; white-space: nowrap; }
+  .btn-valider:hover { background: var(--accent-gradient); color: var(--accent-on); }
+  .btn-valider:disabled { opacity: 0.4; cursor: not-allowed; }
+  .cat-group { margin-bottom: 20px; }
+  .cat-group-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <h1>Performance Dashboard</h1>
-    <div class="sub" id="last-update">Chargement...</div>
+<div class="pmt-header">
+  <div class="pmt-logo">
+    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" role="img" aria-hidden="true">
+      <defs>
+        <linearGradient id="pmt-logo-grad-3" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#4ADE80" /><stop offset="1" stop-color="#059669" />
+        </linearGradient>
+      </defs>
+      <circle cx="16" cy="16" r="14.5" stroke="url(#pmt-logo-grad-3)" stroke-width="2" fill="#151917" />
+      <path d="M16 7.5C11.5 13 7 17 7 20.5C7 23.2 9.2 25 11.7 25C13.2 25 14.5 24.2 15.2 23C15 24.8 13.7 26.1 12 26.9H20C18.3 26.1 17 24.8 16.8 23C17.5 24.2 18.8 25 20.3 25C22.8 25 25 23.2 25 20.5C25 17 20.5 13 16 7.5Z" fill="url(#pmt-logo-grad-3)" />
+    </svg>
+    <div>
+      <div class="pmt-header-title">📊 Performance Dashboard</div>
+      <div class="pmt-header-sub" id="last-update">Chargement...</div>
+    </div>
   </div>
-  <button class="refresh-btn" onclick="loadData()">↻ Rafraîchir</button>
+  <button class="btn-ghost" onclick="loadData()">↻ Rafraîchir</button>
 </div>
 
 <div class="tabs">
@@ -128,29 +75,62 @@ tr:hover td { background: var(--green-bg2); }
 </div>
 
 <div class="tab-content active" id="tab-lifetime">
-  <div class="loading" id="loading-lifetime"><div class="spinner"></div>Chargement...</div>
-  <div id="content-lifetime" style="display:none">
-    <div class="kpi-row" id="kpi-row"></div>
-    <div class="divider"></div>
-    <div class="section-label">Répartition par catégorie</div>
-    <div class="bar-list" id="bar-cats"></div>
+  <div class="tab-panel">
+    <div class="loading" id="loading-lifetime"><div class="spinner"></div>Chargement...</div>
+    <div id="content-lifetime" style="display:none">
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <div class="divider"></div>
+
+      <div class="section-title">
+        <div class="section-title-left">
+          <span class="section-title-bar"></span>
+          <span class="section-title-text">Répartition par catégorie</span>
+        </div>
+      </div>
+      <div class="donut-wrap">
+        <div id="donut-cats"></div>
+        <div class="chart-legend" id="legend-cats"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-label">Détail</div>
+      <div class="bar-list" id="bar-cats"></div>
+    </div>
   </div>
 </div>
 
 <div class="tab-content" id="tab-semaines">
-  <div class="table-wrap">
-    <table id="table-semaines"><thead></thead><tbody></tbody></table>
+  <div class="tab-panel">
+    <div class="section-title">
+      <div class="section-title-left">
+        <span class="section-title-bar"></span>
+        <span class="section-title-text">Heures par semaine (12 dernières)</span>
+      </div>
+    </div>
+    <div class="barchart-wrap" id="barchart-semaines"></div>
+
+    <div class="divider"></div>
+
+    <div class="table-wrap">
+      <table id="table-semaines"><thead></thead><tbody></tbody></table>
+    </div>
   </div>
 </div>
 
 <div class="tab-content" id="tab-souscats">
-  <div class="section-label">Heures par sous-catégorie</div>
-  <div class="bar-list" id="bar-souscats"></div>
+  <div class="tab-panel">
+    <div class="section-label">Heures par sous-catégorie</div>
+    <div class="bar-list" id="bar-souscats"></div>
+  </div>
 </div>
 
 <div class="tab-content" id="tab-routines">
-  <div class="section-label">Routines de la semaine</div>
-  <div id="routines-list"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
+  <div class="tab-panel">
+    <div class="section-label">Routines de la semaine</div>
+    <div id="routines-list"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
+  </div>
 </div>
 
 <script>
@@ -159,8 +139,10 @@ const SESSIONS_DB = '3a938f0c-b1ca-8184-983b-ec5b89e26311';
 const SEMAINES_DB = '3a938f0c-b1ca-81f6-aa6d-d26f85d9efe2';
 const ROUTINES_DB = '3a938f0c-b1ca-8197-9303-c7d4ba179385';
 const VALIDATIONS_DB = '3b338f0c-b1ca-810b-80a1-f7711147c8c9';
-const CATS = ['Technique Poker', 'Mental', 'Physique', 'Coaching', 'Business'];
-const CAT_ICONS = { 'Technique Poker': '♠', 'Mental': '◈', 'Physique': '◉', 'Coaching': '◆', 'Business': '◇' };
+const CATS = ['Technique Poker', 'Mental', 'Coaching', 'Business'];
+const CAT_ICONS = { 'Technique Poker': '♠', 'Mental': '◈', 'Coaching': '◆', 'Business': '◇' };
+// Validated categorical palette (dark surface #151917) — fixed hue order, see dataviz skill.
+const CAT_COLORS = { 'Technique Poker': '#3987e5', 'Mental': '#d95926', 'Coaching': '#199e70', 'Business': '#c98500' };
 let allSessions = [], allSemaines = [], allRoutines = [], allValidations = [], allValidationsMonth = [], allValidationsYear = [];
 
 // Dates périodes
@@ -199,6 +181,76 @@ function minToH(min) {
   return h > 0 ? (m > 0 ? h + 'h' + String(m).padStart(2,'0') : h + 'h') : m + 'min';
 }
 
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+/* ── Donut chart: category split ──────────────────────────────────────
+   Fixed-order categorical palette, validated for the dark panel surface
+   (adjacent-pair CVD + normal-vision floors both pass — see CAT_COLORS). */
+function renderDonut(containerId, legendId, segments, totalMin) {
+  const r = 46, cx = 60, cy = 60, sw = 14, circumference = 2 * Math.PI * r, gap = 3;
+  const total = segments.reduce((s, x) => s + x.value, 0);
+  let offset = 0;
+  let rings = '';
+  if (total <= 0) {
+    rings = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border-2)" stroke-width="${sw}"/>`;
+  } else {
+    segments.forEach(seg => {
+      if (seg.value <= 0) return;
+      const frac = seg.value / total;
+      const segLen = Math.max(frac * circumference - gap, 0);
+      rings += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${sw}"
+        stroke-dasharray="${segLen} ${circumference}" stroke-dashoffset="${-offset}" stroke-linecap="round">
+        <title>${escHtml(seg.label)} — ${escHtml(seg.valueLabel)} (${Math.round(frac * 100)}%)</title>
+      </circle>`;
+      offset += frac * circumference;
+    });
+  }
+  document.getElementById(containerId).innerHTML = `
+    <svg class="donut-svg" viewBox="0 0 120 120" width="140" height="140" role="img" aria-label="Répartition des heures par catégorie">
+      <g transform="rotate(-90 ${cx} ${cy})">${rings}</g>
+      <text x="${cx}" y="${cy - 4}" text-anchor="middle" class="donut-total-value">${minToH(totalMin)}</text>
+      <text x="${cx}" y="${cy + 12}" text-anchor="middle" class="donut-total-label">lifetime</text>
+    </svg>`;
+  document.getElementById(legendId).innerHTML = segments.map(seg => `
+    <div class="chart-legend-item">
+      <span class="chart-legend-dot" style="background:${seg.color}"></span>
+      ${escHtml(seg.label)} · ${escHtml(seg.valueLabel)}
+    </div>`).join('');
+}
+
+/* ── Bar chart: hours per week (single series → one hue, extreme labeled) ── */
+function renderWeeklyBarChart(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (items.length === 0) { el.innerHTML = `<div style="color:var(--text-dim);font-size:13px;padding:16px 0">Aucune donnée.</div>`; return; }
+
+  const barW = 24, gapW = 10, padTop = 22, padBottom = 20, chartH = 130;
+  const w = items.length * (barW + gapW) + gapW;
+  const maxVal = Math.max(1, ...items.map(i => i.value));
+  const maxIdx = items.reduce((best, i, idx) => i.value > items[best].value ? idx : best, 0);
+
+  let bars = '';
+  items.forEach((item, i) => {
+    const x = gapW + i * (barW + gapW);
+    const h = item.value > 0 ? (item.value / maxVal) * chartH : 0;
+    const y = padTop + (chartH - h);
+    bars += `<rect class="barchart-bar" x="${x}" y="${y}" width="${barW}" height="${Math.max(h, 1)}" rx="4" ry="4">
+      <title>${escHtml(item.fullLabel)} — ${escHtml(minToH(item.value))}</title>
+    </rect>`;
+    if (i === maxIdx && item.value > 0) {
+      bars += `<text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" class="barchart-value-label">${escHtml(minToH(item.value))}</text>`;
+    }
+    bars += `<text x="${x + barW / 2}" y="${padTop + chartH + 14}" text-anchor="middle" class="barchart-axis-label">${escHtml(item.label)}</text>`;
+  });
+
+  el.innerHTML = `
+    <svg class="barchart-svg" viewBox="0 0 ${w} ${padTop + chartH + padBottom}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Heures travaillées par semaine">
+      <line class="barchart-baseline" x1="0" y1="${padTop + chartH}" x2="${w}" y2="${padTop + chartH}"/>
+      ${bars}
+    </svg>`;
+}
+
 async function loadData() {
   document.getElementById('loading-lifetime').style.display = 'block';
   document.getElementById('content-lifetime').style.display = 'none';
@@ -229,7 +281,7 @@ async function loadData() {
     const now = new Date();
     document.getElementById('last-update').textContent = 'Mis à jour ' + now.toLocaleDateString('fr-FR') + ' · ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   } catch(e) {
-    document.getElementById('loading-lifetime').innerHTML = '<div style="color:#e55">Erreur de chargement</div>';
+    document.getElementById('loading-lifetime').innerHTML = '<div style="color:var(--red)">Erreur de chargement</div>';
   }
 }
 
@@ -241,13 +293,21 @@ function renderLifetime() {
     const min = allSessions.filter(s => s.categorie === cat).reduce((s,x) => s + x.duree, 0);
     row.innerHTML += `<div class="kpi"><div class="kpi-label">${CAT_ICONS[cat]} ${cat}</div><div class="kpi-value">${minToH(min) === '—' ? '0h' : minToH(min)}</div></div>`;
   });
+
+  const segments = CATS.map(cat => ({
+    label: cat,
+    value: allSessions.filter(s => s.categorie === cat).reduce((s,x) => s + x.duree, 0),
+    color: CAT_COLORS[cat],
+  })).map(seg => ({ ...seg, valueLabel: minToH(seg.value) === '—' ? '0h' : minToH(seg.value) }));
+  renderDonut('donut-cats', 'legend-cats', segments, totalMin);
+
   const maxMin = Math.max(1, ...CATS.map(cat => allSessions.filter(s => s.categorie === cat).reduce((s,x) => s + x.duree, 0)));
   const barList = document.getElementById('bar-cats');
   barList.innerHTML = '';
   CATS.forEach(cat => {
     const min = allSessions.filter(s => s.categorie === cat).reduce((s,x) => s + x.duree, 0);
     const pct = min / maxMin * 100;
-    barList.innerHTML += `<div class="bar-item"><div class="bar-label">${CAT_ICONS[cat]} ${cat}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-value">${minToH(min) === '—' ? '0h' : minToH(min)}</div></div>`;
+    barList.innerHTML += `<div class="bar-item"><div class="bar-label">${CAT_ICONS[cat]} ${cat}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${CAT_COLORS[cat]}"></div></div><div class="bar-value">${minToH(min) === '—' ? '0h' : minToH(min)}</div></div>`;
   });
 }
 
@@ -272,6 +332,13 @@ function renderSemaines() {
   const tr = document.createElement('tr'); tr.className = 'total-row';
   let cells = `<td>Total</td>`; CATS.forEach(cat => { cells += `<td class="${totals[cat] > 0 ? 'has-data' : 'zero'}">${minToH(totals[cat])}</td>`; });
   cells += `<td class="total-col">${minToH(grand)}</td>`; tr.innerHTML = cells; tbody.appendChild(tr);
+
+  const chartItems = allSemaines.slice(-12).map(sem => {
+    const min = allSessions.filter(s => s.semaine === sem.id).reduce((s,x) => s + x.duree, 0);
+    const match = sem.nom.match(/Semaine\s*(\d+)/i);
+    return { label: match ? 'S' + match[1] : sem.nom.slice(0, 4), fullLabel: sem.nom, value: min };
+  });
+  renderWeeklyBarChart('barchart-semaines', chartItems);
 }
 
 function renderSousCats() {
@@ -319,10 +386,10 @@ function renderRoutines() {
   const scoreMonth = calcScore(allValidationsMonth, allRoutines, 'month');
   const scoreYear = calcScore(allValidationsYear, allRoutines, 'year');
 
-  const scoreColor = s => s >= 80 ? '#00e5a0' : s >= 50 ? '#fbbf24' : '#f87171';
+  const scoreColor = s => s >= 80 ? 'var(--accent)' : s >= 50 ? 'var(--yellow)' : 'var(--red)';
 
   let html = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px">
+    <div class="kpi-row" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:24px">
       <div class="kpi"><div class="kpi-label">Cette semaine</div><div class="kpi-value" style="color:${scoreColor(scoreWeek)}">${scoreWeek}%</div></div>
       <div class="kpi"><div class="kpi-label">Ce mois</div><div class="kpi-value" style="color:${scoreColor(scoreMonth)}">${scoreMonth}%</div></div>
       <div class="kpi"><div class="kpi-label">Cette année</div><div class="kpi-value" style="color:${scoreColor(scoreYear)}">${scoreYear}%</div></div>
